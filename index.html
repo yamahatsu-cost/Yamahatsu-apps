@@ -1,147 +1,227 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>楽天お得比較ベース</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>楽天商品比較アプリ</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <h1>楽天お得比較ベース</h1>
-      <p class="subtitle">価格・ポイント・送料補正・クーポン補正を考慮して比較する拡張ベース</p>
-    </div>
-    <div class="topbar-actions">
-      <button id="openSettingsBtn" class="secondary">API設定</button>
-      <button id="saveSnapshotBtn" class="secondary">検索条件保存</button>
-    </div>
-  </header>
-
-  <main class="layout">
-    <section class="panel controls-panel">
-      <div class="panel-header">
-        <h2>検索条件</h2>
-        <div class="inline-actions">
-          <button id="searchBtn">まとめて検索</button>
-          <button id="clearBtn" class="secondary">クリア</button>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-wrap">
+          <div class="brand-badge">R</div>
+          <div class="brand-text">
+            <h1>楽天商品比較アプリ</h1>
+            <p>価格・ポイント・送料補正・クーポン補正を考慮して比較</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary">API設定</button>
+          <button class="btn btn-secondary">検索条件保存</button>
         </div>
       </div>
+    </header>
 
-      <div class="settings-grid compact">
-        <label>
-          候補件数/商品
-          <select id="hitsPerItem">
-            <option value="5">5件</option>
-            <option value="8" selected>8件</option>
-            <option value="10">10件</option>
-          </select>
-        </label>
-        <label>
-          送料別商品の初期送料(円)
-          <input id="defaultShipping" type="number" min="0" step="1" value="800" />
-        </label>
-        <label>
-          ポイント評価
-          <select id="pointMode">
-            <option value="full" selected>満額反映</option>
-            <option value="half">50%反映</option>
-            <option value="none">反映しない</option>
-          </select>
-        </label>
-        <label>
-          並び順
-          <select id="sortMode">
-            <option value="effective" selected>実質価格が安い順</option>
-            <option value="price">価格が安い順</option>
-            <option value="point">ポイントが高い順</option>
-          </select>
-        </label>
-      </div>
-
-      <div id="queryList" class="query-list"></div>
-
-      <div class="note-box">
-        <strong>この版の考え方</strong>
-        <p>楽天APIから取得できる価格・画像・ショップ・ポイント倍率・送料無料フラグを使い、クーポンと送料金額は補正入力できるようにしています。あとから送料ルールやクーポン自動判定を追加しやすい構成です。</p>
-      </div>
-    </section>
-
-    <section class="panel summary-panel">
-      <div class="panel-header">
-        <h2>合計比較</h2>
-        <div class="inline-actions">
-          <button id="optimizeBtn">最安組み合わせを計算</button>
+    <main class="page">
+      <section class="panel main-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">検索条件</h2>
+            <p class="panel-sub">商品ごとに条件を設定し、候補を見やすく比較します。</p>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-accent">まとめて検索</button>
+            <button class="btn btn-light">クリア</button>
+          </div>
         </div>
-      </div>
-      <div id="summaryArea" class="summary-area empty-state">
-        商品を検索すると、ここに最安候補と組み合わせ結果を表示します。
-      </div>
-    </section>
-  </main>
 
-  <section class="panel results-panel">
-    <div class="panel-header">
-      <h2>商品別候補</h2>
-      <div class="legend">
-        <span><i class="dot good"></i> 選択中</span>
-        <span><i class="dot normal"></i> 候補</span>
-      </div>
-    </div>
-    <div id="resultsArea" class="results-area empty-state">まだ検索していません。</div>
-  </section>
+        <div class="panel-body">
+          <div class="toolbar responsive-grid-4">
+            <div class="field">
+              <label>候補件数/商品</label>
+              <select class="select"><option>8件</option></select>
+            </div>
+            <div class="field">
+              <label>送料別商品の初期送料(円)</label>
+              <input class="input" value="800" />
+            </div>
+            <div class="field">
+              <label>ポイント評価</label>
+              <select class="select"><option>満額反映</option></select>
+            </div>
+            <div class="field">
+              <label>並び順</label>
+              <select class="select"><option>実質価格が安い順</option></select>
+            </div>
+          </div>
 
-  <dialog id="settingsDialog">
-    <form method="dialog" class="dialog-body">
-      <div class="dialog-head">
-        <h3>API設定</h3>
-      </div>
-      <label>
-        Rakuten Application ID
-        <input id="applicationId" type="text" placeholder="楽天のアプリID" />
-      </label>
-      <label>
-        Rakuten Access Key
-        <input id="accessKey" type="text" placeholder="楽天のアクセスキー" />
-      </label>
-      <p class="help-text">ブラウザの localStorage に保存します。外部送信は楽天APIへの検索時のみです。</p>
-      <div class="dialog-actions">
-        <button id="saveSettingsBtn" value="default">保存</button>
-        <button class="secondary" value="cancel">閉じる</button>
-      </div>
-    </form>
-  </dialog>
+          <div class="products">
+            <article class="product-box">
+              <div class="product-head">
+                <h3>商品 1</h3>
+                <label class="toggle"><input type="checkbox" checked /> 使用する</label>
+              </div>
+              <div class="product-grid responsive-grid-4">
+                <div class="field field-wide">
+                  <label>商品名</label>
+                  <input class="input" value="シェーバー" />
+                </div>
+                <div class="field">
+                  <label>最低価格(円)</label>
+                  <input class="input" placeholder="任意" />
+                </div>
+                <div class="field">
+                  <label>最高価格(円)</label>
+                  <input class="input" placeholder="任意" />
+                </div>
+                <div class="field">
+                  <label>除外ショップ</label>
+                  <input class="input" placeholder="ショップ名をカンマ区切り" />
+                </div>
+              </div>
+            </article>
 
-  <template id="queryRowTemplate">
-    <div class="query-row">
-      <div class="query-row-head">
-        <h3 class="query-title"></h3>
-        <label class="checkbox-inline">
-          <input type="checkbox" class="query-enable" checked />
-          使用する
-        </label>
-      </div>
-      <div class="query-grid">
-        <label>
-          商品名
-          <input type="text" class="query-keyword" placeholder="例: iPhone 16 ケース" />
-        </label>
-        <label>
-          最低価格(円)
-          <input type="number" class="query-min-price" min="0" step="1" placeholder="任意" />
-        </label>
-        <label>
-          最高価格(円)
-          <input type="number" class="query-max-price" min="0" step="1" placeholder="任意" />
-        </label>
-        <label>
-          除外ショップ
-          <input type="text" class="query-exclude-shops" placeholder="ショップ名をカンマ区切り" />
-        </label>
-      </div>
-    </div>
-  </template>
+            <article class="product-box">
+              <div class="product-head">
+                <h3>商品 2</h3>
+                <label class="toggle"><input type="checkbox" checked /> 使用する</label>
+              </div>
+              <div class="product-grid responsive-grid-4">
+                <div class="field field-wide">
+                  <label>商品名</label>
+                  <input class="input" value="PLA" />
+                </div>
+                <div class="field">
+                  <label>最低価格(円)</label>
+                  <input class="input" placeholder="任意" />
+                </div>
+                <div class="field">
+                  <label>最高価格(円)</label>
+                  <input class="input" placeholder="任意" />
+                </div>
+                <div class="field">
+                  <label>除外ショップ</label>
+                  <input class="input" placeholder="ショップ名をカンマ区切り" />
+                </div>
+              </div>
+            </article>
+          </div>
 
-  <script src="app.js" defer></script>
+          <div class="section-gap"></div>
+
+          <div class="result-section-head">
+            <div>
+              <h2 class="panel-title panel-title-sm">検索結果</h2>
+              <p class="panel-sub">画像つきカードで有力候補順に表示します。</p>
+            </div>
+          </div>
+
+          <div class="result-list">
+            <article class="result-card">
+              <div class="thumb"><img src="https://via.placeholder.com/220x220.png?text=Shaver" alt="商品画像" /></div>
+              <div class="card-main">
+                <div class="rank-row">
+                  <span class="chip">有力候補 1</span>
+                  <span class="chip chip-success">送料無料</span>
+                  <span class="chip chip-muted">レビュー 4.52</span>
+                </div>
+                <h3 class="title">シェーバー USB充電モデル 防水タイプ 3枚刃</h3>
+                <div class="meta">ショップ: 〇〇家電楽天市場店</div>
+                <div class="metrics responsive-grid-5">
+                  <div class="metric"><span class="metric-label">価格</span><span class="metric-value">¥3,980</span></div>
+                  <div class="metric"><span class="metric-label">ポイント</span><span class="metric-value">10%</span></div>
+                  <div class="metric"><span class="metric-label">送料補正</span><span class="metric-value">¥0</span></div>
+                  <div class="metric"><span class="metric-label">クーポン補正</span><span class="metric-value">-¥300</span></div>
+                  <div class="metric metric-strong"><span class="metric-label">実質価格</span><span class="metric-value">¥3,282</span></div>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-select">この候補を選ぶ</button>
+                <a class="btn btn-link" href="#">商品ページへ</a>
+              </div>
+            </article>
+
+            <article class="result-card">
+              <div class="thumb"><img src="https://via.placeholder.com/220x220.png?text=PLA" alt="商品画像" /></div>
+              <div class="card-main">
+                <div class="rank-row">
+                  <span class="chip">有力候補 2</span>
+                  <span class="chip chip-warn">送料別</span>
+                  <span class="chip chip-muted">レビュー 4.41</span>
+                </div>
+                <h3 class="title">PLAフィラメント 1kg つや消しタイプ 1.75mm</h3>
+                <div class="meta">ショップ: 〇〇3Dストア</div>
+                <div class="metrics responsive-grid-5">
+                  <div class="metric"><span class="metric-label">価格</span><span class="metric-value">¥2,680</span></div>
+                  <div class="metric"><span class="metric-label">ポイント</span><span class="metric-value">5%</span></div>
+                  <div class="metric"><span class="metric-label">送料補正</span><span class="metric-value">¥800</span></div>
+                  <div class="metric"><span class="metric-label">クーポン補正</span><span class="metric-value">¥0</span></div>
+                  <div class="metric metric-strong"><span class="metric-label">実質価格</span><span class="metric-value">¥3,346</span></div>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-select">この候補を選ぶ</button>
+                <a class="btn btn-link" href="#">商品ページへ</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel side-panel">
+        <div class="panel-header side-header">
+          <div>
+            <h2 class="panel-title">合計比較</h2>
+            <p class="panel-sub">選択中の商品と最安組み合わせを一覧で確認できます。</p>
+          </div>
+          <button class="btn btn-accent">最安組み合わせを計算</button>
+        </div>
+
+        <div class="panel-body">
+          <div class="summary-grid responsive-grid-4">
+            <div class="summary-box"><div class="label">商品合計</div><div class="value">¥6,660</div></div>
+            <div class="summary-box"><div class="label">ポイント評価</div><div class="value">-¥498</div></div>
+            <div class="summary-box"><div class="label">送料補正</div><div class="value">+¥800</div></div>
+            <div class="summary-box"><div class="label">実質合計</div><div class="value">¥6,962</div></div>
+          </div>
+
+          <div class="selected-list">
+            <article class="selected-card">
+              <div class="selected-top">
+                <div class="selected-product">シェーバー</div>
+                <div class="selected-shop">〇〇家電楽天市場店</div>
+              </div>
+              <div class="selected-metrics responsive-grid-4">
+                <div class="metric compact"><span class="metric-label">価格</span><span class="metric-value">¥3,980</span></div>
+                <div class="metric compact"><span class="metric-label">ポイント</span><span class="metric-value">-¥398</span></div>
+                <div class="metric compact"><span class="metric-label">送料</span><span class="metric-value">¥0</span></div>
+                <div class="metric compact metric-strong"><span class="metric-label">実質</span><span class="metric-value">¥3,282</span></div>
+              </div>
+            </article>
+
+            <article class="selected-card">
+              <div class="selected-top">
+                <div class="selected-product">PLA</div>
+                <div class="selected-shop">〇〇3Dストア</div>
+              </div>
+              <div class="selected-metrics responsive-grid-4">
+                <div class="metric compact"><span class="metric-label">価格</span><span class="metric-value">¥2,680</span></div>
+                <div class="metric compact"><span class="metric-label">ポイント</span><span class="metric-value">-¥100</span></div>
+                <div class="metric compact"><span class="metric-label">送料</span><span class="metric-value">¥800</span></div>
+                <div class="metric compact metric-strong"><span class="metric-label">実質</span><span class="metric-value">¥3,680</span></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="footer-note">
+            右側の一覧は表ではなくカード表示に変更し、長い商品名やショップ名でもはみ出しにくいようにしています。スマホでは1列表示に切り替わります。
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <script src="app.js"></script>
 </body>
 </html>
