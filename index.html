@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>楽天お得比較ベース</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>楽天お得比較ベース</h1>
+      <p class="subtitle">価格・ポイント・送料補正・クーポン補正を考慮して比較する拡張ベース</p>
+    </div>
+    <div class="topbar-actions">
+      <button id="openSettingsBtn" class="secondary">API設定</button>
+      <button id="saveSnapshotBtn" class="secondary">検索条件保存</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel controls-panel">
+      <div class="panel-header">
+        <h2>検索条件</h2>
+        <div class="inline-actions">
+          <button id="searchBtn">まとめて検索</button>
+          <button id="clearBtn" class="secondary">クリア</button>
+        </div>
+      </div>
+
+      <div class="settings-grid compact">
+        <label>
+          候補件数/商品
+          <select id="hitsPerItem">
+            <option value="5">5件</option>
+            <option value="8" selected>8件</option>
+            <option value="10">10件</option>
+          </select>
+        </label>
+        <label>
+          送料別商品の初期送料(円)
+          <input id="defaultShipping" type="number" min="0" step="1" value="800" />
+        </label>
+        <label>
+          ポイント評価
+          <select id="pointMode">
+            <option value="full" selected>満額反映</option>
+            <option value="half">50%反映</option>
+            <option value="none">反映しない</option>
+          </select>
+        </label>
+        <label>
+          並び順
+          <select id="sortMode">
+            <option value="effective" selected>実質価格が安い順</option>
+            <option value="price">価格が安い順</option>
+            <option value="point">ポイントが高い順</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="queryList" class="query-list"></div>
+
+      <div class="note-box">
+        <strong>この版の考え方</strong>
+        <p>楽天APIから取得できる価格・画像・ショップ・ポイント倍率・送料無料フラグを使い、クーポンと送料金額は補正入力できるようにしています。あとから送料ルールやクーポン自動判定を追加しやすい構成です。</p>
+      </div>
+    </section>
+
+    <section class="panel summary-panel">
+      <div class="panel-header">
+        <h2>合計比較</h2>
+        <div class="inline-actions">
+          <button id="optimizeBtn">最安組み合わせを計算</button>
+        </div>
+      </div>
+      <div id="summaryArea" class="summary-area empty-state">
+        商品を検索すると、ここに最安候補と組み合わせ結果を表示します。
+      </div>
+    </section>
+  </main>
+
+  <section class="panel results-panel">
+    <div class="panel-header">
+      <h2>商品別候補</h2>
+      <div class="legend">
+        <span><i class="dot good"></i> 選択中</span>
+        <span><i class="dot normal"></i> 候補</span>
+      </div>
+    </div>
+    <div id="resultsArea" class="results-area empty-state">まだ検索していません。</div>
+  </section>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog-body">
+      <div class="dialog-head">
+        <h3>API設定</h3>
+      </div>
+      <label>
+        Rakuten Application ID
+        <input id="applicationId" type="text" placeholder="楽天のアプリID" />
+      </label>
+      <label>
+        Rakuten Access Key
+        <input id="accessKey" type="text" placeholder="楽天のアクセスキー" />
+      </label>
+      <p class="help-text">ブラウザの localStorage に保存します。外部送信は楽天APIへの検索時のみです。</p>
+      <div class="dialog-actions">
+        <button id="saveSettingsBtn" value="default">保存</button>
+        <button class="secondary" value="cancel">閉じる</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="queryRowTemplate">
+    <div class="query-row">
+      <div class="query-row-head">
+        <h3 class="query-title"></h3>
+        <label class="checkbox-inline">
+          <input type="checkbox" class="query-enable" checked />
+          使用する
+        </label>
+      </div>
+      <div class="query-grid">
+        <label>
+          商品名
+          <input type="text" class="query-keyword" placeholder="例: iPhone 16 ケース" />
+        </label>
+        <label>
+          最低価格(円)
+          <input type="number" class="query-min-price" min="0" step="1" placeholder="任意" />
+        </label>
+        <label>
+          最高価格(円)
+          <input type="number" class="query-max-price" min="0" step="1" placeholder="任意" />
+        </label>
+        <label>
+          除外ショップ
+          <input type="text" class="query-exclude-shops" placeholder="ショップ名をカンマ区切り" />
+        </label>
+      </div>
+    </div>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
