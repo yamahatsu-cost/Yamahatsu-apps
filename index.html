@@ -406,8 +406,8 @@
         padding: 14px;
         border-radius: 16px;
       }
-      .summary-box .value { font-size: 22px; }
-      .grand-total .value { font-size: 28px; }
+      .summary-box .value { font-size: 14px; }
+      .grand-total .value { font-size: 16px; }
       .allowance-row {
       display: grid;
       grid-template-columns: 110px 90px 110px 110px 110px 140px minmax(200px, 1fr);
@@ -416,7 +416,16 @@
       overflow-x: auto;
     }
     }
-  </style>
+  
+@media (max-width: 900px) {
+  .header-row {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+</style>
 </head>
 <body>
   <header class="app-header">
