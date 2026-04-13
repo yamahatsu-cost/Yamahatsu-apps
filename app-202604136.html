@@ -5,13 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>出張費精算アプリ</title>
   <meta name="theme-color" content="#0b57d0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="出張費精算" />
   <style>
     :root {
       --blue: #0b57d0;
@@ -326,8 +319,8 @@
 
     .date-select,
     .table-date-select {
-      width: 112px;
-      min-width: 112px;
+      width: 102px;
+      min-width: 102px;
     }
 
     .date-placeholder {
@@ -369,7 +362,7 @@
     }
 
     .metric-value {
-      font-size: 15px !important;
+      font-size: 16px !important;
       font-weight: 700;
     }
 
@@ -443,6 +436,10 @@
       }
       .summary-box .value { font-size: 14px; }
       .grand-total .value { font-size: 16px; }
+
+  /* スマホ時：精算結果の金額を少し大きく */
+  .summary-box .value { font-size: 15px; }
+  .grand-total .value { font-size: 17px; }
       .allowance-row {
       display: grid;
       grid-template-columns: 110px 90px 110px 110px 110px 140px minmax(200px, 1fr);
@@ -554,25 +551,6 @@ td select {
   padding-top: 0;
   padding-bottom: 0;
   padding-right: 30px;
-}
-
-
-/* === スマホだけ最適化：その他の参加者を少し狭くして備考を広げる === */
-@media (max-width: 900px) {
-  #otherBody td:nth-child(4) input {
-    min-width: 220px !important;
-  }
-  #otherBody td:nth-child(3) input {
-    min-width: 180px !important;
-  }
-  #otherBody td:nth-child(7) input {
-    min-width: 180px !important;
-  }
-}
-
-/* === iPhone更新対策補助 === */
-html, body {
-  overscroll-behavior: contain;
 }
 
 </style>
@@ -1315,7 +1293,7 @@ html, body {
         input.style.minWidth = '200px';
       }
       if (kind === 'other' && key === 'attendees') {
-        input.style.minWidth = window.innerWidth <= 900 ? '220px' : '280px';
+        input.style.minWidth = '280px';
       }
       if (datalistId) {
         input.setAttribute('list', datalistId);
@@ -1571,19 +1549,7 @@ html, body {
 
     async function checkForUpdate() {
       try {
-        const urlVersion = new URLSearchParams(location.search).get('v');
-        const seenVersion = localStorage.getItem('trip-expense-seen-version');
-        if (urlVersion && seenVersion && seenVersion !== urlVersion) {
-          els.updatePopup.classList.add('active');
-        }
-        if (urlVersion) {
-          localStorage.setItem('trip-expense-seen-version', urlVersion);
-        }
-
-        const res = await fetch(`./version.json?ts=${Date.now()}`, {
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        });
+        const res = await fetch(`./version.json?ts=${Date.now()}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
         if (data.version && data.version !== APP_VERSION) {
@@ -1686,15 +1652,6 @@ html, body {
       updateFieldBackgrounds();
       checkForUpdate();
     }
-
-
-    (function unregisterOldServiceWorkers() {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations()
-          .then(regs => regs.forEach(reg => reg.unregister()))
-          .catch(() => {});
-      }
-    })();
 
     init();
   </script>
