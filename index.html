@@ -549,6 +549,20 @@ td select {
   padding-right: 30px;
 }
 
+
+/* === スマホだけ最適化：その他の参加者を少し狭くして備考を広げる === */
+@media (max-width: 900px) {
+  #otherBody td:nth-child(4) input {
+    min-width: 220px !important; /* 参加者 */
+  }
+  #otherBody td:nth-child(3) input {
+    min-width: 180px !important; /* 取引先 */
+  }
+  #otherBody td:nth-child(7) input {
+    min-width: 180px !important; /* 備考を広めに確保 */
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1280,7 +1294,7 @@ td select {
         input.style.minWidth = '200px';
       }
       if (kind === 'other' && key === 'attendees') {
-        input.style.minWidth = '280px';
+        input.style.minWidth = window.innerWidth <= 900 ? '220px' : '280px';
       }
       if (datalistId) {
         input.setAttribute('list', datalistId);
