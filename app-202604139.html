@@ -1,724 +1,1682 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>出張費精算</title>
-<style>
-  :root{
-    --bg:#f4f7fb;
-    --card:#ffffff;
-    --line:#dbe4ef;
-    --text:#1f2d3d;
-    --muted:#6b7b8c;
-    --blue:#0f5ea8;
-    --blue2:#1976d2;
-    --blue3:#eaf4ff;
-    --warn:#f7efe0;
-    --sum:#0d3b66;
-    --shadow:0 8px 24px rgba(15, 50, 90, .08);
-    --radius:16px;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>出張費精算アプリ</title>
+  <meta name="theme-color" content="#0b57d0" />
+  <style>
+    :root {
+      --blue: #0b57d0;
+      --blue-dark: #0846a8;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --line: #d7e0ee;
+      --text: #1c2430;
+      --muted: #687284;
+      --danger: #c62828;
+      --ok: #167c3a;
+      --beige: #f7f0dc;
+      --shadow: 0 8px 24px rgba(13, 33, 66, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Meiryo", "Hiragino Kaku Gothic ProN", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: transparent;
+      color: #fff;
+      padding: 0 16px 0;
+    }
+
+    .header-row {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(180deg, var(--blue), var(--blue-dark));
+      box-shadow: 0 4px 18px rgba(8, 35, 87, 0.22);
+      border-radius: 0 0 18px 18px;
+      padding: 16px 18px;
+    }
+
+    .header-title {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .header-sub {
+      font-size: 12px;
+      opacity: 0.92;
+      margin-top: 2px;
+    }
+
+    .header-badge {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .header-badge-btn {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: auto;
+      box-shadow: none;
+    }
+
+    .header-badge-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-1px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 18px auto 48px;
+      padding: 0 16px 40px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .allowance-row {
+      display: grid;
+      grid-template-columns: 110px 90px 110px 110px 110px 140px minmax(200px, 1fr);
+      gap: 10px;
+      align-items: end;
+      overflow-x: auto;
+    }
+
+    .allowance-row .field input,
+    .allowance-row .field select {
+      min-width: 0;
+    }
+
+    .allowance-row .field.note-field input {
+      width: 100%;
+    }
+
+    .allowance-row.daytrip-mode {
+      grid-template-columns: 110px 90px 110px 110px 140px minmax(200px, 1fr);
+    }
+
+    .allowance-row.daytrip-mode #allowanceDaysWrap {
+      display: none;
+    }
+
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    input, select, textarea, button {
+      font: inherit;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #cfd8e6;
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-height: 42px;
+      background: var(--beige);
+      transition: 0.15s ease;
+    }
+
+    input[type="text"],
+    textarea {
+      text-align: left;
+    }
+
+    input[type="number"] {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .amount-input {
+      text-align: right !important;
+      min-width: 110px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .center-input {
+      text-align: center !important;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #allowanceFactor,
+    #allowanceDays,
+    #holidayWorkDays,
+    #substituteDays {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #allowanceUnit,
+    #allowanceAmount,
+    #distanceKm,
+    #advancePayment {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input.has-value,
+    select.has-value,
+    textarea.has-value {
+      background: #fff;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.12);
+    }
+
+    textarea { min-height: 76px; resize: vertical; }
+
+    .inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 6px;
+    }
+
+    .btn {
+      writing-mode: horizontal-tb;
+      white-space: nowrap;
+      min-width: 66px;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: 0.15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-secondary { background: #e8eef8; color: #17458f; }
+    .btn-danger { background: #fde8e8; color: var(--danger); }
+    .btn-ghost { background: #f3f6fa; color: #334154; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #edf4ff;
+      color: #1f4d95;
+    }
+
+    .pill.ok { background: #eaf8ef; color: var(--ok); }
+    .pill.warn { background: #fff6e8; color: #9a6518; }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e4ebf5;
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #eef5ff;
+      color: #27415f;
+      font-size: 12px;
+      text-align: left;
+      z-index: 1;
+      padding-left: 12px;
+    }
+
+    td .field { min-width: 120px; }
+
+    .date-select,
+    .table-date-select {
+      width: 92px;
+      min-width: 92px;
+    }
+
+    .date-placeholder {
+      background: var(--beige) !important;
+      color: var(--muted);
+    }
+
+    .date-placeholder::placeholder {
+      color: var(--muted);
+      opacity: 1;
+    }
+    td input, td select, td textarea { min-height: 38px; padding: 8px 10px; }
+    td textarea { min-height: 38px; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .summary-box {
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .summary-box .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .summary-box .value {
+      font-size: 15px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .metric-value {
+      font-size: 17px !important;
+      font-weight: 700;
+    }
+
+    .grand-total {
+      border: 2px solid #cfe0fb;
+      background: linear-gradient(180deg, #fafdff, #eef5ff);
+    }
+
+    .grand-total .value {
+      font-size: 18px;
+      color: #0f418f;
+      text-align: right;
+    }
+
+    .summary-grid.metrics-only {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .muted { color: var(--muted); }
+    .right { text-align: right; }
+    th.right { text-align: left; }
+    .hidden { display: none !important; }
+    .small { font-size: 12px; }
+
+    #distanceKm {
+      text-align: center !important;
+    }
+
+
+    .update-popup {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 99;
+      max-width: 360px;
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      padding: 16px;
+      display: none;
+    }
+
+    .update-popup.active { display: block; }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-4, .grid-3, .grid-2, .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .allowance-row {
+        grid-template-columns: 110px 90px 110px 110px 110px 140px minmax(200px, 1fr);
+      }
+      .header-row {
+        align-items: flex-start;
+        flex-direction: column;
+        border-radius: 0 0 8px 8px;
+      }
+      .container {
+        padding: 0 10px 28px;
+      }
+      .card {
+        padding: 14px;
+        border-radius: 16px;
+      }
+      .summary-box .value { font-size: 14px; }
+      .grand-total .value { font-size: 16px; }
+
+  /* スマホ時：精算結果の金額を少し大きく */
+  .summary-box .value { font-size: 16px; }
+  .grand-total .value { font-size: 18px; }
+      .allowance-row {
+      display: grid;
+      grid-template-columns: 110px 90px 110px 110px 110px 140px minmax(200px, 1fr);
+      gap: 10px;
+      align-items: end;
+      overflow-x: auto;
+    }
+    }
+  
+@media (max-width: 900px) {
+  .header-row {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0 0 8px 8px;
   }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:"Meiryo","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif;
+}
+
+
+
+/* 改良版 削除ボタン */
+.btn-delete-icon{
+  background:#f3f6fa;
+  color:#9aa3af;
+  border:none;
+  border-radius:8px;
+  width:34px;
+  height:34px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:0.15s;
+}
+.btn-delete-icon:hover{
+  background:#fde8e8;
+  color:#c62828;
+}
+.btn-delete-icon svg{
+  width:16px;
+  height:16px;
+}
+
+.btn-delete-icon{
+  background:#fde8e8;
+  color:#c62828;
+  border:none;
+  border-radius:8px;
+  width:32px;
+  height:32px;
+  padding:0;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.btn-delete-icon:hover{
+  background:#f8cfcf;
+}
+
+
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+
+/* === iPhone Safari select高さ対策 === */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  min-height: 42px;
+  height: 42px;
+  box-sizing: border-box;
+}
+
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: 1.2;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #2f86eb 50%),
+    linear-gradient(135deg, #2f86eb 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 10px) calc(50% - 3px);
+  background-size: 8px 8px, 8px 8px;
+  background-repeat: no-repeat;
+}
+
+td input,
+td select,
+td textarea {
+  min-height: 38px;
+  height: 38px;
+}
+
+td select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 30px;
+}
+
+
+/* ===== スマホ専用：その他テーブル最適化 ===== */
+@media (max-width: 900px) {
+  #otherBody td:nth-child(4) input {
+    min-width: 200px !important; /* 参加者 少し狭く */
   }
-  .wrap{
-    width:min(1080px, calc(100% - 20px));
-    margin:14px auto 40px;
+
+  #otherBody td:nth-child(3) input {
+    min-width: 160px !important; /* 取引先 少し圧縮 */
   }
-  .hero{
-    background:linear-gradient(135deg,var(--blue),var(--blue2));
-    color:#fff;
-    border-radius:20px;
-    padding:18px 18px 14px;
-    box-shadow:var(--shadow);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
+
+  #otherBody td:nth-child(7) input {
+    min-width: 180px !important;
+    width: 100% !important;      /* 備考を広めに確保 */
   }
-  .hero h1{
-    margin:0;
-    font-size:clamp(26px, 4.8vw, 38px);
-    letter-spacing:.02em;
+}
+
+
+/* ===== スマホ用：その他の備考幅最適化を維持 ===== */
+@media (max-width: 900px) {
+  #otherBody td:nth-child(4) input {
+    min-width: 200px !important; /* 参加者 少し狭く */
   }
-  .badge-row{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
+  #otherBody td:nth-child(3) input {
+    min-width: 160px !important; /* 取引先 少し圧縮 */
   }
-  .badge-btn{
-    appearance:none;
-    border:none;
-    border-radius:999px;
-    padding:8px 14px;
-    background:rgba(255,255,255,.16);
-    color:#fff;
-    font-weight:700;
-    cursor:pointer;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+  #otherBody td:nth-child(7) input {
+    min-width: 180px !important;
+    width: 100% !important;      /* 備考を広めに確保 */
   }
-  .version{
-    border-radius:999px;
-    padding:8px 14px;
-    background:rgba(255,255,255,.14);
-    font-size:13px;
-    font-weight:700;
-  }
-  .grid{
-    display:grid;
-    gap:14px;
-    margin-top:14px;
-  }
-  .card{
-    background:var(--card);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    overflow:hidden;
-  }
-  .card-header{
-    background:var(--blue3);
-    color:var(--blue);
-    font-weight:800;
-    padding:12px 16px;
-    border-bottom:1px solid var(--line);
-    font-size:18px;
-  }
-  .card-body{
-    padding:16px;
-  }
-  .form-grid{
-    display:grid;
-    grid-template-columns:repeat(12,minmax(0,1fr));
-    gap:10px 12px;
-  }
-  .field{
-    grid-column:span 3;
-    min-width:0;
-  }
-  .field.w2{grid-column:span 2;}
-  .field.w4{grid-column:span 4;}
-  .field.w6{grid-column:span 6;}
-  .field.w12{grid-column:span 12;}
-  label{
-    display:block;
-    margin:0 0 6px;
-    font-size:13px;
-    color:var(--muted);
-    font-weight:700;
-  }
-  input, select, textarea{
-    width:100%;
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:11px 12px;
-    font:inherit;
-    background:#fff;
-    outline:none;
-  }
-  input:focus, select:focus, textarea:focus{
-    border-color:#7cb5ff;
-    box-shadow:0 0 0 3px rgba(25,118,210,.12);
-  }
-  input::placeholder, textarea::placeholder{color:#9aa8b6}
-  .blank{
-    background:var(--warn);
-  }
-  .summary-boxes{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:10px;
-    margin-top:12px;
-  }
-  .summary-box{
-    background:#f8fbff;
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:12px;
-  }
-  .summary-box .ttl{
-    color:var(--muted);
-    font-size:12px;
-    font-weight:700;
-    margin-bottom:6px;
-  }
-  .summary-box .val{
-    font-size:24px;
-    font-weight:900;
-    color:var(--sum);
-  }
-  .toolbar{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-top:12px;
-  }
-  button{
-    appearance:none;
-    border:none;
-    border-radius:12px;
-    padding:10px 14px;
-    font:inherit;
-    font-weight:800;
-    cursor:pointer;
-  }
-  .btn-primary{background:var(--blue2); color:#fff;}
-  .btn-soft{background:#edf5ff; color:var(--blue);}
-  .btn-danger{background:#fbecec; color:#a12a2a;}
-  .table-wrap{
-    overflow:auto;
-    border-top:1px solid var(--line);
-  }
-  table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:850px;
-  }
-  th, td{
-    border-bottom:1px solid var(--line);
-    padding:8px;
-    vertical-align:top;
-  }
-  th{
-    background:#f8fbff;
-    color:var(--muted);
-    text-align:center;
-    font-size:13px;
-    white-space:nowrap;
-  }
-  td input, td select{padding:9px 10px}
-  .num{text-align:right}
-  .right{ text-align:right; }
-  .total-line{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    padding:14px 16px;
-    border-top:1px solid var(--line);
-    font-weight:900;
-    font-size:20px;
-  }
-  .grand{
-    background:linear-gradient(135deg,#0d3b66,#155a9b);
-    color:#fff;
-    border-radius:18px;
-    padding:18px;
-  }
-  .grand-grid{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:12px;
-  }
-  .grand-item{
-    background:rgba(255,255,255,.1);
-    border-radius:14px;
-    padding:14px;
-  }
-  .grand-item .k{
-    font-size:12px;
-    opacity:.85;
-    margin-bottom:6px;
-  }
-  .grand-item .v{
-    font-size:clamp(24px, 4vw, 34px);
-    font-weight:900;
-  }
-  .note{
-    margin-top:10px;
-    font-size:13px;
-    opacity:.92;
-  }
-  .footer{
-    text-align:center;
-    color:var(--muted);
-    font-size:12px;
-    margin-top:16px;
-  }
-  @media (max-width: 900px){
-    .field, .field.w2, .field.w4, .field.w6{grid-column:span 6;}
-    .summary-boxes, .grand-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-  }
-  @media (max-width: 640px){
-    .wrap{width:min(100%, calc(100% - 12px)); margin-top:8px;}
-    .hero{padding:14px 14px 12px; border-radius:16px; align-items:flex-start; flex-direction:column;}
-    .hero h1{font-size:30px}
-    .field, .field.w2, .field.w4, .field.w6, .field.w12{grid-column:span 12;}
-    .summary-boxes, .grand-grid{grid-template-columns:1fr 1fr;}
-    .summary-box .val{font-size:22px}
-    .total-line{font-size:18px}
-  }
+}
+
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hero">
-    <h1>出張費精算</h1>
-    <div class="badge-row">
-      <button class="badge-btn" id="saveBtn" type="button">保存</button>
-      <button class="badge-btn" id="resetBtn" type="button">↺ リセット</button>
-      <div class="version">ver. 2026.04.13.9</div>
+  <header class="app-header">
+    <div class="header-row">
+      <div>
+        <div class="header-title">出張費精算</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ</div>
+      </div>
+      <div class="header-actions">
+      <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
+      <button class="header-badge-btn" id="headerResetBtn" type="button">リセット</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>基本情報</h2>
+          <div class="section-sub">出張種類、日数、距離、日当条件をここで管理します。</div>
+        </div>
+        <div class="inline">
+                    <button class="btn btn-secondary" id="distanceBtn" type="button">銀座から距離計算</button>
+          
+        </div>
+      </div>
+
+      <div class="grid grid-4">
+        <div class="field">
+          <label for="tripType">出張種類</label>
+          <select id="tripType">
+            <option value="normal">普通出張</option>
+            <option value="longDay">長距離日帰り出張</option>
+            <option value="shortDay">近距離日帰り出張</option>
+            <option value="overseas">海外出張</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fullName">氏名</label>
+          <input id="fullName" type="text" placeholder="例）坂口 健太郎" />
+        </div>
+        <div class="field">
+          <label for="position">役職</label>
+          <select id="position">
+            <option value="">選択してください</option>
+            <option value="本部長">本部長</option>
+            <option value="副本部長">副本部長</option>
+            <option value="部長">部長</option>
+            <option value="副部長">副部長</option>
+            <option value="課長">課長</option>
+            <option value="副課長">副課長</option>
+            <option value="係長">係長</option>
+            <option value="主任">主任</option>
+            <option value="一般社員">一般社員</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="destination">出張先</label>
+          <input id="destination" type="text" placeholder="例）大阪市中央区" />
+        </div>
+      </div>
+
+      <div class="grid grid-4" style="margin-top:12px;">
+        <div class="field">
+          <label for="departDate">出発日</label>
+          <input id="departDate" type="text" inputmode="numeric" placeholder="例）yyyy/mm/dd" class="date-placeholder date-select" />
+        </div>
+        <div class="field" id="returnDateWrap">
+          <label for="returnDate">帰着日</label>
+          <input id="returnDate" type="text" inputmode="numeric" placeholder="例）yyyy/mm/dd" class="date-placeholder date-select" />
+        </div>
+        <div class="field">
+          <label>半日条件</label>
+          <div class="check-row">
+            <label><input id="pmDepart" type="checkbox" /> 午後発</label>
+            <label><input id="amArrive" type="checkbox" /> 午前着</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="distanceKm">銀座からの距離 (km)</label>
+          <input id="distanceKm" class="center" type="number" placeholder="自動計算または手入力" min="0" step="0.1" />
+        </div>
+      </div>
+
+      <div class="summary-grid metrics-only" style="margin-top:14px;">
+        <div class="summary-box">
+          <div class="label">出張日数</div>
+          <div class="value metric-value" id="tripDaysText">0.0日</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">休日出勤</div>
+          <div class="value metric-value" id="holidayWorkText">0日</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">振替代休</div>
+          <div class="value metric-value" id="substituteText">0日</div>
+        </div>
+      </div>
+      <div id="judgeText" class="hidden"></div>
+      <div class="small muted" style="margin-top:10px;">
+        ※ 祝日は公開JSONデータ取得を試み、取得できない場合は土日のみで計算します。距離計算は銀座四丁目付近を起点として道路距離で取得します。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>交通費</h2>
+
+        </div>
+        <div class="inline">
+          <button class="btn btn-secondary" type="button" data-sort="transport">日付順ソート</button>
+          <button class="btn btn-primary" type="button" data-add="transport">行追加</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>交通機関</th>
+              <th>発地</th>
+              <th>着地</th>
+              <th class="right">金額</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="transportBody"></tbody>
+        </table>
+      </div>
+      <div class="right" style="margin-top:10px;font-weight:700;">交通費合計：<span id="transportTotal">¥0</span></div>
+    </section>
+
+    <section class="card" id="lodgingSection">
+      <div class="section-title">
+        <div>
+          <h2>宿泊経費</h2>
+
+        </div>
+        <div class="inline">
+          <button class="btn btn-secondary" type="button" data-sort="lodging">日付順ソート</button>
+          <button class="btn btn-primary" type="button" data-add="lodging">行追加</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>宿泊先</th>
+              <th class="right">金額</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lodgingBody"></tbody>
+        </table>
+      </div>
+      <div class="right" style="margin-top:10px;font-weight:700;">宿泊経費合計：<span id="lodgingTotal">¥0</span></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>その他</h2>
+        </div>
+        <div class="inline">
+          <button class="btn btn-secondary" type="button" data-sort="other">日付順ソート</button>
+          <button class="btn btn-primary" type="button" data-add="other">行追加</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>区分</th>
+              <th>取引先</th>
+              <th>参加者</th>
+              <th>人数</th>
+              <th class="right">金額</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="otherBody"></tbody>
+        </table>
+      </div>
+      <div class="right" style="margin-top:10px;font-weight:700;">その他合計：<span id="otherTotal">¥0</span></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>日当計算</h2>
+          <div class="section-sub">役職、出張区分、日数から自動計算します。</div>
+        </div>
+      </div>
+      <div class="allowance-row">
+        <div class="field">
+          <label for="allowanceUnit">単価</label>
+          <input id="allowanceUnit" type="text" class="right" placeholder="役職選択で自動反映" readonly />
+        </div>
+        <div class="field">
+          <label for="allowanceFactor">係数</label>
+          <input id="allowanceFactor" type="number" placeholder="自動反映" readonly />
+        </div>
+        <div class="field" id="allowanceDaysWrap">
+          <label for="allowanceDays">出張日数</label>
+          <input id="allowanceDays" type="number" placeholder="自動計算" readonly />
+        </div>
+        <div class="field">
+          <label for="holidayWorkDays">休日日数</label>
+          <input id="holidayWorkDays" type="number" readonly />
+        </div>
+        <div class="field">
+          <label for="substituteDays">振替休日数</label>
+          <input id="substituteDays" type="number" readonly />
+        </div>
+        <div class="field">
+          <label for="allowanceAmount">日当金額</label>
+          <input id="allowanceAmount" type="text" class="right" placeholder="自動計算" readonly />
+        </div>
+        <div class="field note-field">
+          <label for="allowanceNote">備考</label>
+          <input id="allowanceNote" type="text" placeholder="例）午後発のため0.5日控除" />
+        </div>
+      </div>
+    </section>
+
+    <section class="card grand-total">
+      <div class="section-title">
+        <div>
+          <h2>精算結果</h2>
+          <div class="section-sub">仮払い入力がある場合は差引後を表示します。</div>
+        </div>
+        <div class="inline">
+          
+        </div>
+      </div>
+      <div class="grid grid-4">
+        <div class="summary-box">
+          <div class="label">交通費</div>
+          <div class="value" id="sumTransport">¥0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">宿泊経費</div>
+          <div class="value" id="sumLodging">¥0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">その他</div>
+          <div class="value" id="sumOther">¥0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">日当</div>
+          <div class="value" id="sumAllowance">¥0</div>
+        </div>
+      </div>
+
+      <div class="grid grid-3" style="margin-top:14px;align-items:end;">
+        <div class="field">
+          <label for="advancePayment">仮払い金</label>
+          <input id="advancePayment" type="text" inputmode="numeric" placeholder="例）¥10,000" />
+        </div>
+        <div class="summary-box">
+          <div class="label">出張費合計金額</div>
+          <div class="value" id="grossTotal">¥0</div>
+        </div>
+        <div class="summary-box grand-total">
+          <div class="label">出張費精算金額合計</div>
+          <div class="value" id="netTotal">¥0</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">この版は入力フォーム・計算ロジック先行版です。次段階でExcelフォーム出力を追加できます。</div>
+  </main>
+
+  <div class="update-popup" id="updatePopup">
+    <div style="font-weight:800; margin-bottom:6px;">新しいバージョンがあります</div>
+    <div class="small muted" style="margin-bottom:10px;">更新して最新の出張費精算アプリを開いてください。</div>
+    <div class="inline">
+      <button class="btn btn-primary" id="reloadBtn" type="button">更新する</button>
+      <button class="btn btn-ghost" id="dismissUpdateBtn" type="button">あとで</button>
     </div>
   </div>
 
-  <div class="grid">
-    <section class="card">
-      <div class="card-header">基本情報</div>
-      <div class="card-body">
-        <div class="form-grid">
-          <div class="field">
-            <label>氏名</label>
-            <input id="empName" placeholder="氏名" />
-          </div>
-          <div class="field">
-            <label>所属</label>
-            <input id="dept" placeholder="所属" />
-          </div>
-          <div class="field">
-            <label>役職</label>
-            <select id="position">
-              <option value="">選択してください</option>
-              <option>本部長</option>
-              <option>副本部長</option>
-              <option>部長</option>
-              <option>副部長</option>
-              <option>課長</option>
-              <option>副課長</option>
-              <option>係長</option>
-              <option>主任</option>
-              <option>一般</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>出張種類</label>
-            <select id="tripType">
-              <option value="">選択してください</option>
-              <option>普通出張</option>
-              <option>近距離日帰り出張</option>
-              <option>長距離日帰り出張</option>
-              <option>海外出張</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label>出発日</label>
-            <input id="startDate" type="date" />
-          </div>
-          <div class="field">
-            <label>帰着日</label>
-            <input id="endDate" type="date" />
-          </div>
-          <div class="field w4">
-            <label>出張先</label>
-            <input id="destination" placeholder="例）大阪、名古屋、台北" />
-          </div>
-          <div class="field">
-            <label>銀座からの距離 (km)</label>
-            <input id="distanceKm" type="number" min="0" step="0.1" placeholder="0" />
-          </div>
-
-          <div class="field">
-            <label>出張手当単価</label>
-            <input id="allowanceUnit" type="number" min="0" step="1" placeholder="0" />
-          </div>
-          <div class="field">
-            <label>休日出勤日数</label>
-            <input id="holidayWorkDays" type="number" min="0" step="1" value="0" />
-          </div>
-          <div class="field">
-            <label>振替休日数</label>
-            <input id="substituteDays" type="number" min="0" step="1" value="0" />
-          </div>
-          <div class="field w6">
-            <label>出張目的・備考</label>
-            <textarea id="tripMemo" rows="2" placeholder="目的、訪問先、補足など"></textarea>
-          </div>
-        </div>
-
-        <div class="summary-boxes">
-          <div class="summary-box">
-            <div class="ttl">出張日数</div>
-            <div class="val" id="tripDaysView">0</div>
-          </div>
-          <div class="summary-box">
-            <div class="ttl">休日出勤</div>
-            <div class="val" id="holidayWorkView">0</div>
-          </div>
-          <div class="summary-box">
-            <div class="ttl">振替休日</div>
-            <div class="val" id="substituteView">0</div>
-          </div>
-          <div class="summary-box">
-            <div class="ttl">日当合計</div>
-            <div class="val" id="allowanceTotalView">¥0</div>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn-soft" id="suggestBtn" type="button">距離から区分判定</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="card-header">交通費</div>
-      <div class="table-wrap">
-        <table id="transportTable">
-          <thead>
-            <tr>
-              <th style="width:120px;">日付</th>
-              <th style="width:130px;">交通機関</th>
-              <th>発地</th>
-              <th>着地</th>
-              <th style="width:130px;">金額</th>
-              <th>備考</th>
-              <th style="width:70px;">削除</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="card-body">
-        <div class="toolbar">
-          <button class="btn-primary" type="button" onclick="addTransportRow()">＋ 行追加</button>
-        </div>
-      </div>
-      <div class="total-line">
-        <span>交通費合計</span>
-        <span id="transportTotal">¥0</span>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="card-header">宿泊費</div>
-      <div class="table-wrap">
-        <table id="lodgingTable">
-          <thead>
-            <tr>
-              <th style="width:120px;">日付</th>
-              <th>宿泊先</th>
-              <th style="width:130px;">金額</th>
-              <th>備考</th>
-              <th style="width:70px;">削除</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="card-body">
-        <div class="toolbar">
-          <button class="btn-primary" type="button" onclick="addLodgingRow()">＋ 行追加</button>
-        </div>
-      </div>
-      <div class="total-line">
-        <span>宿泊費合計</span>
-        <span id="lodgingTotal">¥0</span>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="card-header">その他</div>
-      <div class="table-wrap">
-        <table id="otherTable">
-          <thead>
-            <tr>
-              <th style="width:120px;">日付</th>
-              <th style="width:110px;">区分</th>
-              <th style="width:130px;">参加者</th>
-              <th style="width:130px;">金額</th>
-              <th>備考</th>
-              <th style="width:70px;">削除</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="card-body">
-        <div class="toolbar">
-          <button class="btn-primary" type="button" onclick="addOtherRow()">＋ 行追加</button>
-        </div>
-      </div>
-      <div class="total-line">
-        <span>その他合計</span>
-        <span id="otherTotal">¥0</span>
-      </div>
-    </section>
-
-    <section class="grand">
-      <div class="grand-grid">
-        <div class="grand-item">
-          <div class="k">交通費</div>
-          <div class="v" id="grandTransport">¥0</div>
-        </div>
-        <div class="grand-item">
-          <div class="k">宿泊費</div>
-          <div class="v" id="grandLodging">¥0</div>
-        </div>
-        <div class="grand-item">
-          <div class="k">その他</div>
-          <div class="v" id="grandOther">¥0</div>
-        </div>
-        <div class="grand-item">
-          <div class="k">総合計</div>
-          <div class="v" id="grandTotal">¥0</div>
-        </div>
-      </div>
-      <div class="note" id="formulaNote">日当＝出張手当単価 × 出張日数</div>
-    </section>
-  </div>
-
-  <div class="footer">この版は復旧用の単一HTMLです。GitHub Pages にそのままアップできます。</div>
-</div>
-
-<script>
-const STORAGE_KEY = 'trip-expense-app-202604139';
-
-function yen(v){
-  const n = Number(v || 0);
-  return '¥' + n.toLocaleString('ja-JP');
-}
-function num(v){
-  const n = parseFloat(v);
-  return isFinite(n) ? n : 0;
-}
-function daysBetween(a,b){
-  if(!a || !b) return 0;
-  const s = new Date(a + 'T00:00:00');
-  const e = new Date(b + 'T00:00:00');
-  if(isNaN(s) || isNaN(e) || e < s) return 0;
-  return Math.floor((e - s) / 86400000) + 1;
-}
-function autoBlankStyle(){
-  document.querySelectorAll('input, select, textarea').forEach(el=>{
-    const empty = (el.value ?? '').toString().trim() === '';
-    if(el.type === 'number') {
-      el.classList.toggle('blank', empty);
-    } else if(el.tagName === 'SELECT') {
-      el.classList.toggle('blank', empty);
-    } else {
-      el.classList.toggle('blank', empty);
-    }
-  });
-}
-function updateAllowanceUnit(){
-  const pos = document.getElementById('position').value;
-  const higher = ['本部長','副本部長','部長','副部長'];
-  const unit = higher.includes(pos) ? 4000 : 3500;
-  if(pos) document.getElementById('allowanceUnit').value = unit;
-}
-function suggestTripType(){
-  const km = num(document.getElementById('distanceKm').value);
-  const tripType = document.getElementById('tripType');
-  let v = '';
-  if(km >= 200) v = '長距離日帰り出張';
-  else if(km > 0 && km < 200) v = '近距離日帰り出張';
-  if(v) tripType.value = v;
-  recalc();
-}
-function rowTransport(data={}){
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="date" class="r-date" value="${data.date||''}"></td>
-    <td>
-      <select class="r-kind">
-        ${['','電車','新幹線','バス','タクシー','飛行機','フェリー（船）','レンタカー','ガソリン','その他'].map(v=>`<option ${data.kind===v?'selected':''}>${v}</option>`).join('')}
-      </select>
-    </td>
-    <td><input class="r-from" value="${data.from||''}" placeholder="発地"></td>
-    <td><input class="r-to" value="${data.to||''}" placeholder="着地"></td>
-    <td><input type="number" class="r-amount num" min="0" step="1" value="${data.amount||''}" placeholder="0"></td>
-    <td><input class="r-memo" value="${data.memo||''}" placeholder="備考"></td>
-    <td class="right"><button class="btn-danger" type="button">削除</button></td>`;
-  tr.querySelector('button').onclick = ()=>{ tr.remove(); recalc(); save(); };
-  tr.querySelectorAll('input,select').forEach(el=>el.addEventListener('input', ()=>{ recalc(); save(); }));
-  return tr;
-}
-function rowLodging(data={}){
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="date" class="r-date" value="${data.date||''}"></td>
-    <td><input class="r-place" value="${data.place||''}" placeholder="宿泊先"></td>
-    <td><input type="number" class="r-amount num" min="0" step="1" value="${data.amount||''}" placeholder="0"></td>
-    <td><input class="r-memo" value="${data.memo||''}" placeholder="備考"></td>
-    <td class="right"><button class="btn-danger" type="button">削除</button></td>`;
-  tr.querySelector('button').onclick = ()=>{ tr.remove(); recalc(); save(); };
-  tr.querySelectorAll('input').forEach(el=>el.addEventListener('input', ()=>{ recalc(); save(); }));
-  return tr;
-}
-function rowOther(data={}){
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="date" class="r-date" value="${data.date||''}"></td>
-    <td>
-      <select class="r-kind">
-        ${['','会議費','接待費','昼食','夕食','駐車場','宅配便','雑費','その他'].map(v=>`<option ${data.kind===v?'selected':''}>${v}</option>`).join('')}
-      </select>
-    </td>
-    <td><input class="r-participants" value="${data.participants||''}" placeholder="参加者"></td>
-    <td><input type="number" class="r-amount num" min="0" step="1" value="${data.amount||''}" placeholder="0"></td>
-    <td><input class="r-memo" value="${data.memo||''}" placeholder="備考"></td>
-    <td class="right"><button class="btn-danger" type="button">削除</button></td>`;
-  tr.querySelector('button').onclick = ()=>{ tr.remove(); recalc(); save(); };
-  tr.querySelectorAll('input,select').forEach(el=>el.addEventListener('input', ()=>{ recalc(); save(); }));
-  return tr;
-}
-function addTransportRow(data={}){ document.querySelector('#transportTable tbody').appendChild(rowTransport(data)); autoBlankStyle(); }
-function addLodgingRow(data={}){ document.querySelector('#lodgingTable tbody').appendChild(rowLodging(data)); autoBlankStyle(); }
-function addOtherRow(data={}){ document.querySelector('#otherTable tbody').appendChild(rowOther(data)); autoBlankStyle(); }
-
-function collectRows(selector, type){
-  return [...document.querySelectorAll(selector)].map(tr=>{
-    if(type==='transport'){
-      return {
-        date: tr.querySelector('.r-date').value,
-        kind: tr.querySelector('.r-kind').value,
-        from: tr.querySelector('.r-from').value,
-        to: tr.querySelector('.r-to').value,
-        amount: tr.querySelector('.r-amount').value,
-        memo: tr.querySelector('.r-memo').value,
-      };
-    }
-    if(type==='lodging'){
-      return {
-        date: tr.querySelector('.r-date').value,
-        place: tr.querySelector('.r-place').value,
-        amount: tr.querySelector('.r-amount').value,
-        memo: tr.querySelector('.r-memo').value,
-      };
-    }
-    return {
-      date: tr.querySelector('.r-date').value,
-      kind: tr.querySelector('.r-kind').value,
-      participants: tr.querySelector('.r-participants').value,
-      amount: tr.querySelector('.r-amount').value,
-      memo: tr.querySelector('.r-memo').value,
+  <script>
+    const APP_VERSION = '2026.04.13.5';
+    const STORAGE_KEY = 'trip-expense-app-state-v1';
+    const HOTEL_KEY = 'trip-expense-hotel-history-v1';
+    const GINZA_COORDS = { lat: 35.6717, lon: 139.7650 };
+    const ROLE_RATES = {
+      '本部長': 4000,
+      '副本部長': 4000,
+      '部長': 4000,
+      '副部長': 4000,
+      '課長': 3500,
+      '副課長': 3500,
+      '係長': 3500,
+      '主任': 3500,
+      '一般社員': 3500,
     };
-  });
-}
-function sumAmounts(selector){
-  return [...document.querySelectorAll(selector)].reduce((s, el)=>s + num(el.value), 0);
-}
-function getFormData(){
-  return {
-    empName: empName.value,
-    dept: dept.value,
-    position: position.value,
-    tripType: tripType.value,
-    startDate: startDate.value,
-    endDate: endDate.value,
-    destination: destination.value,
-    distanceKm: distanceKm.value,
-    allowanceUnit: allowanceUnit.value,
-    holidayWorkDays: holidayWorkDays.value,
-    substituteDays: substituteDays.value,
-    tripMemo: tripMemo.value,
-    transportRows: collectRows('#transportTable tbody tr', 'transport'),
-    lodgingRows: collectRows('#lodgingTable tbody tr', 'lodging'),
-    otherRows: collectRows('#otherTable tbody tr', 'other')
-  };
-}
-function setFormData(d){
-  Object.keys(d || {}).forEach(k=>{
-    const el = document.getElementById(k);
-    if(el) el.value = d[k] ?? '';
-  });
-  document.querySelector('#transportTable tbody').innerHTML = '';
-  document.querySelector('#lodgingTable tbody').innerHTML = '';
-  document.querySelector('#otherTable tbody').innerHTML = '';
-  (d.transportRows || []).forEach(addTransportRow);
-  (d.lodgingRows || []).forEach(addLodgingRow);
-  (d.otherRows || []).forEach(addOtherRow);
-}
-function save(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(getFormData()));
-}
-function load(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw){
-    addTransportRow();
-    addLodgingRow();
-    addOtherRow();
-    recalc();
-    return;
-  }
-  try{
-    setFormData(JSON.parse(raw));
-  }catch(e){
-    addTransportRow(); addLodgingRow(); addOtherRow();
-  }
-  recalc();
-}
-function recalc(){
-  const tripDays = daysBetween(startDate.value, endDate.value);
-  const holidayWork = num(holidayWorkDays.value);
-  const substitute = num(substituteDays.value);
-  const allowanceTotal = num(allowanceUnit.value) * tripDays;
 
-  const transport = sumAmounts('#transportTable .r-amount');
-  const lodging = sumAmounts('#lodgingTable .r-amount');
-  const other = sumAmounts('#otherTable .r-amount');
-  const grand = transport + lodging + other + allowanceTotal;
+    const state = {
+      holidays: {},
+      transport: [],
+      lodging: [],
+      other: [],
+    };
 
-  tripDaysView.textContent = tripDays.toLocaleString('ja-JP');
-  holidayWorkView.textContent = holidayWork.toLocaleString('ja-JP');
-  substituteView.textContent = substitute.toLocaleString('ja-JP');
-  allowanceTotalView.textContent = yen(allowanceTotal);
+    const els = {
+      tripType: document.getElementById('tripType'),
+      fullName: document.getElementById('fullName'),
+      position: document.getElementById('position'),
+      destination: document.getElementById('destination'),
+      departDate: document.getElementById('departDate'),
+      returnDate: document.getElementById('returnDate'),
+      returnDateWrap: document.getElementById('returnDateWrap'),
+      pmDepart: document.getElementById('pmDepart'),
+      amArrive: document.getElementById('amArrive'),
+      distanceKm: document.getElementById('distanceKm'),
+      judgeText: document.getElementById('judgeText'),
+      tripDaysText: document.getElementById('tripDaysText'),
+      holidayWorkText: document.getElementById('holidayWorkText'),
+      substituteText: document.getElementById('substituteText'),
+      distanceBtn: document.getElementById('distanceBtn'),
+      recalcBtn: document.getElementById('recalcBtn'),
+      transportBody: document.getElementById('transportBody'),
+      lodgingBody: document.getElementById('lodgingBody'),
+      otherBody: document.getElementById('otherBody'),
+      lodgingSection: document.getElementById('lodgingSection'),
+      transportTotal: document.getElementById('transportTotal'),
+      lodgingTotal: document.getElementById('lodgingTotal'),
+      otherTotal: document.getElementById('otherTotal'),
+      allowanceUnit: document.getElementById('allowanceUnit'),
+      allowanceFactor: document.getElementById('allowanceFactor'),
+      allowanceDays: document.getElementById('allowanceDays'),
+      allowanceAmount: document.getElementById('allowanceAmount'),
+      holidayWorkDays: document.getElementById('holidayWorkDays'),
+      substituteDays: document.getElementById('substituteDays'),
+      allowanceNote: document.getElementById('allowanceNote'),
+      advancePayment: document.getElementById('advancePayment'),
+      sumTransport: document.getElementById('sumTransport'),
+      sumLodging: document.getElementById('sumLodging'),
+      sumOther: document.getElementById('sumOther'),
+      sumAllowance: document.getElementById('sumAllowance'),
+      grossTotal: document.getElementById('grossTotal'),
+      netTotal: document.getElementById('netTotal'),
+      headerSaveBtn: document.getElementById('headerSaveBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      updatePopup: document.getElementById('updatePopup'),
+      reloadBtn: document.getElementById('reloadBtn'),
+      dismissUpdateBtn: document.getElementById('dismissUpdateBtn'),
+      headerResetBtn: document.getElementById('headerResetBtn'),
+    };
 
-  transportTotal.textContent = yen(transport);
-  lodgingTotal.textContent = yen(lodging);
-  otherTotal.textContent = yen(other);
+    function yen(value) {
+      return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY', maximumFractionDigits: 0 }).format(Number(value || 0));
+    }
 
-  grandTransport.textContent = yen(transport);
-  grandLodging.textContent = yen(lodging);
-  grandOther.textContent = yen(other);
-  grandTotal.textContent = yen(grand);
-  formulaNote.textContent = `日当＝${yen(allowanceUnit.value || 0)} × ${tripDays}日　／　総合計＝交通費＋宿泊費＋その他＋日当`;
+    function num(value) {
+      const normalized = String(value ?? '').replace(/[¥￥,\s]/g, '');
+      const n = Number(normalized);
+      return Number.isFinite(n) ? n : 0;
+    }
 
-  if(startDate.value && endDate.value && new Date(endDate.value) < new Date(startDate.value)){
-    endDate.style.borderColor = '#d33';
-  } else {
-    endDate.style.borderColor = '';
-  }
-  autoBlankStyle();
-}
-document.querySelectorAll('input, select, textarea').forEach(el=>{
-  el.addEventListener('input', ()=>{ 
-    if(el.id==='position') updateAllowanceUnit();
-    recalc(); 
-    save(); 
-  });
-});
-document.getElementById('saveBtn').onclick = ()=>{
-  save();
-  alert('保存しました');
-};
-document.getElementById('resetBtn').onclick = ()=>{
-  if(!confirm('入力内容をリセットしますか？')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  location.reload();
-};
-document.getElementById('suggestBtn').onclick = ()=>{
-  suggestTripType();
-  save();
-};
-document.getElementById('startDate').addEventListener('change', ()=>{ recalc(); save(); });
-document.getElementById('endDate').addEventListener('change', ()=>{
-  if(startDate.value && endDate.value && new Date(endDate.value) < new Date(startDate.value)){
-    alert('帰着日が出発日より前です。');
-  }
-  recalc(); save();
-});
-document.getElementById('destination').addEventListener('input', ()=>{
-  distanceKm.value = '';
-});
-window.addEventListener('beforeunload', save);
+    function formatCurrencyInput(value) {
+      const amount = num(value);
+      return amount ? `¥${amount.toLocaleString('ja-JP')}` : '';
+    }
 
-load();
-</script>
+    function toDate(str) {
+      if (!str) return null;
+      const d = new Date(str + 'T00:00:00');
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatDisplayMD(dateStr) {
+      const d = toDate(dateStr);
+      return d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
+    }
+
+    function setupDatePlaceholderField(el, placeholder = '例）yyyy/mm/dd') {
+      if (!el) return;
+      const activateDateMode = () => {
+        if (el.type !== 'date') {
+          el.type = 'date';
+          el.classList.remove('date-placeholder');
+          if (el.showPicker) {
+            try { el.showPicker(); } catch (e) {}
+          }
+        }
+      };
+
+      const applyPlaceholderMode = () => {
+        if (!el.value) {
+          el.type = 'text';
+          el.placeholder = placeholder;
+          el.classList.add('date-placeholder');
+        } else {
+          el.type = 'date';
+          el.classList.remove('date-placeholder');
+        }
+      };
+
+      if (el.dataset.dateInit !== '1') {
+        el.dataset.dateInit = '1';
+        el.addEventListener('focus', activateDateMode);
+        el.addEventListener('click', activateDateMode);
+        el.addEventListener('blur', applyPlaceholderMode);
+      }
+      applyPlaceholderMode();
+    }
+
+    function refreshDatePlaceholderFields() {
+      setupDatePlaceholderField(els.departDate);
+      setupDatePlaceholderField(els.returnDate);
+    }
+
+    function validateReturnDateOrder(showAlert = true) {
+      const depart = toDate(els.departDate.value);
+      const ret = toDate(els.returnDate.value);
+      if (depart && ret && ret < depart) {
+        els.returnDate.value = '';
+        refreshDatePlaceholderFields();
+        if (showAlert) {
+          alert('帰着日は出発日以降の日付を選択してください。');
+        }
+        return false;
+      }
+      return true;
+    }
+
+    function formatDateKey(d) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function dateRange(start, end) {
+      if (!start || !end || start > end) return [];
+      const arr = [];
+      const cursor = new Date(start);
+      while (cursor <= end) {
+        arr.push(new Date(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      return arr;
+    }
+
+    function isHoliday(dateObj) {
+      const key = formatDateKey(dateObj);
+      return !!state.holidays[key];
+    }
+
+    function isWeekend(dateObj) {
+      const day = dateObj.getDay();
+      return day === 0 || day === 6;
+    }
+
+    async function loadHolidays(year) {
+      if (Object.keys(state.holidays).some(k => k.startsWith(String(year)))) return;
+      try {
+        const res = await fetch(`https://holidays-jp.github.io/api/v1/${year}/date.json`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('holiday fetch failed');
+        const data = await res.json();
+        Object.assign(state.holidays, data);
+      } catch (err) {
+        console.warn('祝日データ取得失敗。土日のみで計算します。', err);
+      }
+    }
+
+    function getRecommendedTripType() {
+      const depart = toDate(els.departDate.value);
+      const ret = toDate(els.returnDate.value || els.departDate.value);
+      const km = num(els.distanceKm.value);
+      const overnight = els.tripType.value === 'normal' || els.tripType.value === 'overseas' || (depart && ret && formatDateKey(depart) !== formatDateKey(ret));
+      if (els.tripType.value === 'overseas') return '海外出張';
+      if (overnight) return '普通出張';
+      if (km >= 200) return '長距離日帰り出張';
+      if (km >= 70) return '近距離日帰り出張';
+      return '近距離日帰り出張';
+    }
+
+    function syncTripTypeUI() {
+      const normal = els.tripType.value === 'normal';
+      const overseas = els.tripType.value === 'overseas';
+      const overnightLike = normal || overseas;
+      els.returnDateWrap.classList.toggle('hidden', !overnightLike);
+      els.lodgingSection.classList.toggle('hidden', !overnightLike);
+      const allowanceRow = document.querySelector('.allowance-row');
+      const allowanceDaysWrap = document.getElementById('allowanceDaysWrap');
+      if (allowanceRow && allowanceDaysWrap) {
+        allowanceRow.classList.toggle('daytrip-mode', !overnightLike);
+        allowanceDaysWrap.style.visibility = overnightLike ? 'visible' : 'hidden';
+      }
+      if (!overnightLike) {
+        els.returnDate.value = els.departDate.value || '';
+      }
+      if (els.tripType.value === 'shortDay' || els.tripType.value === 'longDay') {
+        if (els.pmDepart.checked && els.amArrive.checked) {
+          els.amArrive.checked = false;
+        }
+      }
+      if (typeof refreshDatePlaceholderFields === 'function') {
+        setTimeout(refreshDatePlaceholderFields, 0);
+      }
+    }
+
+    function getAllowanceRate() {
+      return ROLE_RATES[els.position.value] || 0;
+    }
+
+    function getAllowanceFactor() {
+      return els.tripType.value === 'shortDay' ? 0.7 : 1;
+    }
+
+    function calcTripDays() {
+      const depart = toDate(els.departDate.value);
+      const overnightLike = els.tripType.value === 'normal' || els.tripType.value === 'overseas';
+      const ret = toDate(overnightLike ? els.returnDate.value : els.departDate.value);
+      if (!depart || !ret || ret < depart) return 0;
+      if (!overnightLike) return 1;
+      let days = dateRange(depart, ret).length;
+      if (els.pmDepart.checked) days -= 0.5;
+      if (els.amArrive.checked) days -= 0.5;
+      return Math.max(days, 0);
+    }
+
+    function calcHolidayWorkDays() {
+      const depart = toDate(els.departDate.value);
+      const overnightLike = els.tripType.value === 'normal' || els.tripType.value === 'overseas';
+      const ret = toDate(overnightLike ? els.returnDate.value : els.departDate.value);
+      if (!depart || !ret || ret < depart) return 0;
+      if (overnightLike) {
+        return dateRange(depart, ret).filter(d => isWeekend(d) || isHoliday(d)).length;
+      }
+      return (isWeekend(depart) || isHoliday(depart)) ? 1 : 0;
+    }
+
+    function calculateAll() {
+      syncTripTypeUI();
+
+      const overnightLike = els.tripType.value === 'normal' || els.tripType.value === 'overseas';
+      validateReturnDateOrder(false);
+
+      const recommended = getRecommendedTripType();
+      els.judgeText.textContent = recommended;
+
+      const rate = getAllowanceRate();
+      const factor = getAllowanceFactor();
+      const tripDays = calcTripDays();
+      const holidayDays = calcHolidayWorkDays();
+      const allowance = Math.round(rate * factor * (overnightLike ? tripDays : 1));
+
+      els.allowanceUnit.value = rate ? formatCurrencyInput(rate) : '';
+      els.allowanceFactor.value = factor;
+      els.allowanceDays.value = overnightLike ? tripDays : '';
+      els.allowanceAmount.value = allowance ? formatCurrencyInput(allowance) : '';
+      els.holidayWorkDays.value = holidayDays;
+      els.substituteDays.value = holidayDays;
+
+      els.tripDaysText.textContent = `${tripDays.toFixed(1)}日`;
+      els.holidayWorkText.textContent = `${holidayDays}日`;
+      els.substituteText.textContent = `${holidayDays}日`;
+
+      const transport = sumRows(state.transport, 'amount');
+      const lodging = sumRows(state.lodging, 'amount');
+      const other = sumRows(state.other, 'amount');
+      const gross = transport + lodging + other + allowance;
+      const advance = num(els.advancePayment.value);
+      const net = gross - advance;
+
+      els.transportTotal.textContent = yen(transport);
+      els.lodgingTotal.textContent = yen(lodging);
+      els.otherTotal.textContent = yen(other);
+      els.sumTransport.textContent = yen(transport);
+      els.sumLodging.textContent = yen(lodging);
+      els.sumOther.textContent = yen(other);
+      els.sumAllowance.textContent = yen(allowance);
+      els.grossTotal.textContent = yen(gross);
+      els.netTotal.textContent = yen(net);
+
+      updateFieldBackgrounds();
+      persistDraft(false);
+    }
+
+    function sumRows(rows, key) {
+      return rows.reduce((sum, row) => sum + num(row[key]), 0);
+    }
+
+    function getDateOptions() {
+      const depart = toDate(els.departDate.value);
+      const overnightLike = els.tripType.value === 'normal' || els.tripType.value === 'overseas';
+      const ret = toDate(overnightLike ? (els.returnDate.value || els.departDate.value) : els.departDate.value);
+      return dateRange(depart, ret).map(d => formatDateKey(d));
+    }
+
+    function createDateSelect(value = '') {
+      const opts = getDateOptions();
+      const select = document.createElement('select');
+      select.className = 'table-date-select';
+      select.innerHTML = `<option value="">選択</option>${opts.map(d => {
+        const dt = new Date(d + 'T00:00:00');
+        return `<option value="${d}">${dt.getMonth() + 1}/${dt.getDate()}</option>`;
+      }).join('')}`;
+      select.value = value;
+      return select;
+    }
+
+    function makeCellInput(type, value = '', placeholder = '') {
+      const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
+      if (type !== 'textarea') input.type = type;
+      input.value = value;
+      if (placeholder) input.placeholder = placeholder;
+      return input;
+    }
+
+    function renderRows(kind) {
+      const body = kind === 'transport' ? els.transportBody : kind === 'lodging' ? els.lodgingBody : els.otherBody;
+      body.innerHTML = '';
+      state[kind].forEach((row, index) => {
+        const tr = document.createElement('tr');
+
+        if (kind === 'transport') {
+          tr.append(
+            tdDate(kind, index, row.date),
+            tdSelect(kind, index, 'mode', row.mode, ['', '電車', '新幹線', 'バス', 'タクシー', '飛行機', 'フェリー（船）', 'レンタカー', '駐車代', 'ガソリン代', '高速代', 'チャージ', 'その他']),
+            tdInput(kind, index, 'from', row.from, 'text', '例）東京駅'),
+            tdInput(kind, index, 'to', row.to, 'text', '例）新大阪駅'),
+            tdInput(kind, index, 'amount', row.amount, 'text', '例）¥14,000', 'right transport-amount-col'),
+            tdInput(kind, index, 'note', row.note, 'text', '例）往復'),
+            tdDelete(kind, index),
+          );
+        }
+
+        if (kind === 'lodging') {
+          tr.append(
+            tdDate(kind, index, row.date),
+            tdInput(kind, index, 'hotel', row.hotel, 'text', '例）アパホテル心斎橋', '', getHotelHistory()),
+            tdInput(kind, index, 'amount', row.amount, 'text', '例）¥12,000', 'right lodging-amount-col'),
+            tdInput(kind, index, 'note', row.note, 'text', '例）2人分二泊'),
+            tdDelete(kind, index),
+          );
+        }
+
+        if (kind === 'other') {
+          tr.append(
+            tdDate(kind, index, row.date),
+            tdSelect(kind, index, 'category', row.category, ['', '手土産', '会食', '会議費', 'その他']),
+            tdInput(kind, index, 'client', row.client, 'text', '例）○○商事株式会社'),
+            tdInput(kind, index, 'attendees', row.attendees, 'text', '例）○○社長、当社参加者名'),
+            tdInput(kind, index, 'count', row.count, 'number', '例）4', 'center-input other-count-col'),
+            tdInput(kind, index, 'amount', row.amount, 'text', '例）¥8,000', 'right other-amount-col'),
+            tdInput(kind, index, 'note', row.note, 'text', '備考'),
+            tdDelete(kind, index),
+          );
+        }
+
+        body.appendChild(tr);
+      });
+      updateFieldBackgrounds();
+      calculateAll();
+    }
+
+    function tdBase() {
+      const td = document.createElement('td');
+      return td;
+    }
+
+    function tdDate(kind, index, value) {
+      const td = tdBase();
+      const select = createDateSelect(value);
+      select.required = true;
+      select.addEventListener('change', e => {
+        state[kind][index].date = e.target.value;
+        persistDraft(false);
+        calculateAll();
+      });
+      td.appendChild(select);
+      return td;
+    }
+
+    function tdSelect(kind, index, key, value, options) {
+      const td = tdBase();
+      const select = document.createElement('select');
+      select.innerHTML = options.map(v => `<option value="${v}">${v || '選択'}</option>`).join('');
+      select.value = value || '';
+      select.required = true;
+      if (kind === 'other' && key === 'category') {
+        select.style.width = '88px';
+        select.style.minWidth = '88px';
+      }
+      select.addEventListener('change', e => {
+        state[kind][index][key] = e.target.value;
+        updateSelectBackgrounds();
+        persistDraft(false);
+      });
+      td.appendChild(select);
+      return td;
+    }
+
+    function tdInput(kind, index, key, value, type, placeholder = '', className = '', datalistId = '') {
+      const td = tdBase();
+      const input = makeCellInput(type, value, placeholder);
+      if (className) input.className = `${input.className} ${className}`.trim();
+
+      if (key === 'amount') {
+        input.type = 'text';
+        input.inputMode = 'numeric';
+        input.value = formatCurrencyInput(value);
+        input.classList.add('amount-input');
+      }
+
+      if (key === 'count') {
+        input.classList.add('center-input');
+      }
+
+      if (kind === 'other' && key === 'count') {
+        input.style.width = '72px';
+        input.style.minWidth = '72px';
+      }
+      if (kind === 'other' && key === 'client') {
+        input.style.minWidth = '200px';
+      }
+      if (kind === 'other' && key === 'attendees') {
+        input.style.minWidth = window.innerWidth <= 900 ? '220px' : '280px';
+      }
+      if (datalistId) {
+        input.setAttribute('list', datalistId);
+      }
+      input.required = key !== 'note';
+      input.addEventListener('input', e => {
+        if (key === 'amount') {
+          const raw = num(e.target.value);
+          state[kind][index][key] = raw;
+          e.target.value = formatCurrencyInput(raw);
+        } else {
+          state[kind][index][key] = e.target.value;
+        }
+        persistDraft(false);
+        calculateAll();
+      });
+      td.appendChild(input);
+      return td;
+    }
+
+    function tdDelete(kind, index) {
+      const td = tdBase();
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-delete-icon';
+      btn.innerHTML = `
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M3 6h18"/>
+  <path d="M8 6V4h8v2"/>
+  <path d="M19 6l-1 14H6L5 6"/>
+  <path d="M10 11v6"/>
+  <path d="M14 11v6"/>
+</svg>`;
+      btn.addEventListener('click', () => {
+        state[kind].splice(index, 1);
+        renderRows(kind);
+      });
+      td.appendChild(btn);
+      return td;
+    }
+
+    function defaultRow(kind) {
+      if (kind === 'transport') return { date: '', mode: '', from: '', to: '', amount: '', note: '' };
+      if (kind === 'lodging') return { date: '', hotel: '', amount: '', note: '' };
+      return { date: '', category: '', client: '', attendees: '', count: '', amount: '', note: '' };
+    }
+
+    function addRow(kind) {
+      state[kind].push(defaultRow(kind));
+      renderRows(kind);
+    }
+
+    function sortRows(kind) {
+      state[kind].sort((a, b) => (a.date || '9999-99-99').localeCompare(b.date || '9999-99-99'));
+      renderRows(kind);
+    }
+
+    function updateDateSelectors() {
+      const validDates = new Set(getDateOptions());
+      ['transport', 'lodging', 'other'].forEach(kind => {
+        state[kind].forEach(row => {
+          if (row.date && !validDates.has(row.date)) row.date = '';
+        });
+      });
+      ['transport', 'lodging', 'other'].forEach(renderRows);
+    }
+
+    function updateSelectBackgrounds() {
+      document.querySelectorAll('select').forEach(sel => {
+        sel.classList.toggle('has-value', !!sel.value);
+      });
+    }
+    function updateFieldBackgrounds() {
+      document.querySelectorAll('input, select, textarea').forEach(el => {
+        if (el.type === 'checkbox' || el.type === 'button') return;
+        const value = (el.value ?? '').toString().trim();
+        el.classList.toggle('has-value', value !== '');
+      });
+      document.querySelectorAll('select').forEach(sel => {
+        sel.classList.toggle('has-value', !!sel.value);
+      });
+    }
+
+
+    function collectFormState() {
+      return {
+        fields: {
+          tripType: els.tripType.value,
+          fullName: els.fullName.value,
+          position: els.position.value,
+          destination: els.destination.value,
+          departDate: els.departDate.value,
+          returnDate: els.returnDate.value,
+          pmDepart: els.pmDepart.checked,
+          amArrive: els.amArrive.checked,
+          distanceKm: els.distanceKm.value,
+          allowanceNote: els.allowanceNote.value,
+          advancePayment: els.advancePayment.value,
+        },
+        rows: {
+          transport: state.transport,
+          lodging: state.lodging,
+          other: state.other,
+        },
+      };
+    }
+
+    function persistDraft(showAlert = true) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState()));
+      if (showAlert) {
+        const hotels = [...new Set(state.lodging.map(r => (r.hotel || '').trim()).filter(Boolean))];
+        if (hotels.length) {
+          const current = JSON.parse(localStorage.getItem(HOTEL_KEY) || '[]');
+          const merged = [...hotels, ...current.filter(v => !hotels.includes(v))].slice(0, 50);
+          localStorage.setItem(HOTEL_KEY, JSON.stringify(merged));
+          renderHotelDatalist();
+        }
+        alert('入力内容を保存しました。');
+      }
+    }
+
+    function restoreDraft() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const saved = JSON.parse(raw);
+        const f = saved.fields || {};
+        els.tripType.value = f.tripType || 'normal';
+        els.fullName.value = f.fullName || '';
+        els.position.value = f.position || '';
+        els.destination.value = f.destination || '';
+        els.departDate.value = f.departDate || '';
+        els.returnDate.value = f.returnDate || '';
+        els.pmDepart.checked = !!f.pmDepart;
+        els.amArrive.checked = !!f.amArrive;
+        els.distanceKm.value = f.distanceKm || '';
+        els.allowanceNote.value = f.allowanceNote || '';
+        els.advancePayment.value = f.advancePayment || '';
+        state.transport = saved.rows?.transport || [];
+        state.lodging = saved.rows?.lodging || [];
+        state.other = saved.rows?.other || [];
+      } catch (e) {
+        console.warn('保存データの読込失敗', e);
+      }
+    }
+
+    function resetAll() {
+      if (!confirm('入力内容をリセットします。よろしいですか？')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+
+    function getHotelHistory() {
+      return 'hotelCandidates';
+    }
+
+    function storeHotelHistory(name) {
+      return;
+    }
+
+    function renderHotelDatalist() {
+      let dl = document.getElementById('hotelCandidates');
+      if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'hotelCandidates';
+        document.body.appendChild(dl);
+      }
+      const items = JSON.parse(localStorage.getItem(HOTEL_KEY) || '[]');
+      dl.innerHTML = items.map(v => `<option value="${v}"></option>`).join('');
+    }
+
+    function adjustTripTypeByDistance(showPopup = false) {
+      const recommended = getRecommendedTripType();
+      const mapToValue = {
+        '普通出張': 'normal',
+        '長距離日帰り出張': 'longDay',
+        '近距離日帰り出張': 'shortDay',
+        '海外出張': 'overseas'
+      };
+      const nextValue = mapToValue[recommended];
+      if (!nextValue) return false;
+      const currentValue = els.tripType.value;
+      if (currentValue !== nextValue) {
+        els.tripType.value = nextValue;
+        syncTripTypeUI();
+        calculateAll();
+        if (showPopup) {
+          alert(`銀座からの距離判定により、出張種類を「${recommended}」へ自動修正しました。`);
+        }
+        return true;
+      }
+      return false;
+    }
+
+    async function calculateDistance() {
+      const destination = els.destination.value.trim();
+      if (!destination) {
+        alert('出張先を入力してください。');
+        return;
+      }
+      try {
+        els.distanceBtn.disabled = true;
+        els.distanceBtn.textContent = '距離取得中...';
+        const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=jp&q=${encodeURIComponent(destination)}`, {
+          headers: { 'Accept-Language': 'ja' },
+        });
+        const places = await geo.json();
+        if (!places.length) throw new Error('候補なし');
+        const dest = places[0];
+        const url = `https://router.project-osrm.org/route/v1/driving/${GINZA_COORDS.lon},${GINZA_COORDS.lat};${dest.lon},${dest.lat}?overview=false`;
+        const routeRes = await fetch(url);
+        const routeData = await routeRes.json();
+        const meters = routeData?.routes?.[0]?.distance;
+        if (!meters) throw new Error('距離取得失敗');
+        els.distanceKm.value = (meters / 1000).toFixed(1);
+        calculateAll();
+        adjustTripTypeByDistance(true);
+      } catch (err) {
+        console.warn(err);
+        alert('距離を自動取得できませんでした。必要なら手入力してください。');
+      } finally {
+        els.distanceBtn.disabled = false;
+        els.distanceBtn.textContent = '銀座から距離計算';
+      }
+    }
+
+    function validateRequiredFields() {
+      const basicRequired = [
+        { el: els.fullName, name: '氏名' },
+        { el: els.position, name: '役職' },
+        { el: els.destination, name: '出張先' },
+        { el: els.departDate, name: '出発日' }
+      ];
+      const overnightLike = els.tripType.value === 'normal' || els.tripType.value === 'overseas';
+      if (overnightLike) basicRequired.push({ el: els.returnDate, name: '帰着日' });
+      for (const item of basicRequired) {
+        if (!item.el.value) {
+          alert(`${item.name}は必須入力です。`);
+          item.el.focus();
+          return false;
+        }
+      }
+      return true;
+    }
+
+    async function prepareHolidayData() {
+      const years = new Set();
+      if (els.departDate.value) years.add(new Date(els.departDate.value).getFullYear());
+      if (els.returnDate.value) years.add(new Date(els.returnDate.value).getFullYear());
+      await Promise.all([...years].map(loadHolidays));
+      calculateAll();
+    }
+
+    async function checkForUpdate() {
+      try {
+        const res = await fetch(`./version.json?ts=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.version && data.version !== APP_VERSION) {
+          els.updatePopup.classList.add('active');
+        }
+      } catch (e) {
+        console.info('version.json 未配置のため更新チェックはスキップしました。');
+      }
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('[data-add]').forEach(btn => {
+        btn.addEventListener('click', () => addRow(btn.dataset.add));
+      });
+      document.querySelectorAll('[data-sort]').forEach(btn => {
+        btn.addEventListener('click', () => sortRows(btn.dataset.sort));
+      });
+
+      ['tripType', 'position', 'destination', 'departDate', 'returnDate', 'distanceKm'].forEach(key => {
+        els[key].addEventListener('input', async () => {
+          if (key === 'destination') {
+            els.distanceKm.value = '';
+          }
+          if (key === 'departDate' || key === 'returnDate') {
+            if (key === 'departDate' && els.tripType.value !== 'normal' && els.tripType.value !== 'overseas') {
+              els.returnDate.value = els.departDate.value || '';
+            }
+            updateDateSelectors();
+            await prepareHolidayData();
+          }
+          calculateAll();
+        });
+        els[key].addEventListener('change', async () => {
+          if (key === 'destination') {
+            els.distanceKm.value = '';
+          }
+          if (key === 'departDate' || key === 'returnDate') {
+            if (key === 'returnDate' && !validateReturnDateOrder(true)) {
+              els.returnDate.value = '';
+            }
+            if (key === 'departDate' && els.tripType.value !== 'normal' && els.tripType.value !== 'overseas') {
+              els.returnDate.value = els.departDate.value || '';
+            }
+            if (key === 'departDate' && els.returnDate.value && !validateReturnDateOrder(true)) {
+              els.returnDate.value = '';
+            }
+            updateDateSelectors();
+            await prepareHolidayData();
+          }
+          calculateAll();
+        });
+      });
+
+      els.advancePayment.addEventListener('input', () => {
+        els.advancePayment.value = formatCurrencyInput(els.advancePayment.value);
+        calculateAll();
+      });
+      els.advancePayment.addEventListener('change', () => {
+        els.advancePayment.value = formatCurrencyInput(els.advancePayment.value);
+        calculateAll();
+      });
+
+      [els.fullName, els.allowanceNote].forEach(el => {
+        el.addEventListener('input', () => persistDraft(false));
+      });
+
+      els.pmDepart.addEventListener('change', () => {
+        if ((els.tripType.value === 'shortDay' || els.tripType.value === 'longDay') && els.pmDepart.checked) {
+          els.amArrive.checked = false;
+        }
+        calculateAll();
+      });
+      els.amArrive.addEventListener('change', () => {
+        if ((els.tripType.value === 'shortDay' || els.tripType.value === 'longDay') && els.amArrive.checked) {
+          els.pmDepart.checked = false;
+        }
+        calculateAll();
+      });
+      els.distanceBtn.addEventListener('click', calculateDistance);
+      
+      els.headerSaveBtn.addEventListener('click', () => persistDraft(true));
+      els.headerResetBtn.addEventListener('click', resetAll);
+      els.reloadBtn.addEventListener('click', () => location.reload());
+      els.dismissUpdateBtn.addEventListener('click', () => els.updatePopup.classList.remove('active'));
+    }
+
+    async function init() {
+      renderHotelDatalist();
+      restoreDraft();
+      els.advancePayment.value = formatCurrencyInput(els.advancePayment.value);
+      bindEvents();
+      refreshDatePlaceholderFields();
+      if (!state.transport.length) addRow('transport'); else renderRows('transport');
+      if (!state.lodging.length) addRow('lodging'); else renderRows('lodging');
+      if (!state.other.length) addRow('other'); else renderRows('other');
+      await prepareHolidayData();
+      updateDateSelectors();
+      refreshDatePlaceholderFields();
+      calculateAll();
+      updateFieldBackgrounds();
+      checkForUpdate();
+    }
+
+    init();
+  </script>
 </body>
 </html>
