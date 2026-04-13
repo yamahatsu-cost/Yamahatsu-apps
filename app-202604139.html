@@ -1,29 +1,724 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>出張費精算</title>
+<style>
+  :root{
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --line:#dbe4ef;
+    --text:#1f2d3d;
+    --muted:#6b7b8c;
+    --blue:#0f5ea8;
+    --blue2:#1976d2;
+    --blue3:#eaf4ff;
+    --warn:#f7efe0;
+    --sum:#0d3b66;
+    --shadow:0 8px 24px rgba(15, 50, 90, .08);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Meiryo","Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif;
+  }
+  .wrap{
+    width:min(1080px, calc(100% - 20px));
+    margin:14px auto 40px;
+  }
+  .hero{
+    background:linear-gradient(135deg,var(--blue),var(--blue2));
+    color:#fff;
+    border-radius:20px;
+    padding:18px 18px 14px;
+    box-shadow:var(--shadow);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .hero h1{
+    margin:0;
+    font-size:clamp(26px, 4.8vw, 38px);
+    letter-spacing:.02em;
+  }
+  .badge-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .badge-btn{
+    appearance:none;
+    border:none;
+    border-radius:999px;
+    padding:8px 14px;
+    background:rgba(255,255,255,.16);
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+  }
+  .version{
+    border-radius:999px;
+    padding:8px 14px;
+    background:rgba(255,255,255,.14);
+    font-size:13px;
+    font-weight:700;
+  }
+  .grid{
+    display:grid;
+    gap:14px;
+    margin-top:14px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .card-header{
+    background:var(--blue3);
+    color:var(--blue);
+    font-weight:800;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    font-size:18px;
+  }
+  .card-body{
+    padding:16px;
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:10px 12px;
+  }
+  .field{
+    grid-column:span 3;
+    min-width:0;
+  }
+  .field.w2{grid-column:span 2;}
+  .field.w4{grid-column:span 4;}
+  .field.w6{grid-column:span 6;}
+  .field.w12{grid-column:span 12;}
+  label{
+    display:block;
+    margin:0 0 6px;
+    font-size:13px;
+    color:var(--muted);
+    font-weight:700;
+  }
+  input, select, textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 12px;
+    font:inherit;
+    background:#fff;
+    outline:none;
+  }
+  input:focus, select:focus, textarea:focus{
+    border-color:#7cb5ff;
+    box-shadow:0 0 0 3px rgba(25,118,210,.12);
+  }
+  input::placeholder, textarea::placeholder{color:#9aa8b6}
+  .blank{
+    background:var(--warn);
+  }
+  .summary-boxes{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+    margin-top:12px;
+  }
+  .summary-box{
+    background:#f8fbff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px;
+  }
+  .summary-box .ttl{
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .summary-box .val{
+    font-size:24px;
+    font-weight:900;
+    color:var(--sum);
+  }
+  .toolbar{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:12px;
+  }
+  button{
+    appearance:none;
+    border:none;
+    border-radius:12px;
+    padding:10px 14px;
+    font:inherit;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--blue2); color:#fff;}
+  .btn-soft{background:#edf5ff; color:var(--blue);}
+  .btn-danger{background:#fbecec; color:#a12a2a;}
+  .table-wrap{
+    overflow:auto;
+    border-top:1px solid var(--line);
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+  }
+  th, td{
+    border-bottom:1px solid var(--line);
+    padding:8px;
+    vertical-align:top;
+  }
+  th{
+    background:#f8fbff;
+    color:var(--muted);
+    text-align:center;
+    font-size:13px;
+    white-space:nowrap;
+  }
+  td input, td select{padding:9px 10px}
+  .num{text-align:right}
+  .right{ text-align:right; }
+  .total-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border-top:1px solid var(--line);
+    font-weight:900;
+    font-size:20px;
+  }
+  .grand{
+    background:linear-gradient(135deg,#0d3b66,#155a9b);
+    color:#fff;
+    border-radius:18px;
+    padding:18px;
+  }
+  .grand-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+  }
+  .grand-item{
+    background:rgba(255,255,255,.1);
+    border-radius:14px;
+    padding:14px;
+  }
+  .grand-item .k{
+    font-size:12px;
+    opacity:.85;
+    margin-bottom:6px;
+  }
+  .grand-item .v{
+    font-size:clamp(24px, 4vw, 34px);
+    font-weight:900;
+  }
+  .note{
+    margin-top:10px;
+    font-size:13px;
+    opacity:.92;
+  }
+  .footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    margin-top:16px;
+  }
+  @media (max-width: 900px){
+    .field, .field.w2, .field.w4, .field.w6{grid-column:span 6;}
+    .summary-boxes, .grand-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+  @media (max-width: 640px){
+    .wrap{width:min(100%, calc(100% - 12px)); margin-top:8px;}
+    .hero{padding:14px 14px 12px; border-radius:16px; align-items:flex-start; flex-direction:column;}
+    .hero h1{font-size:30px}
+    .field, .field.w2, .field.w4, .field.w6, .field.w12{grid-column:span 12;}
+    .summary-boxes, .grand-grid{grid-template-columns:1fr 1fr;}
+    .summary-box .val{font-size:22px}
+    .total-line{font-size:18px}
+  }
+</style>
 </head>
 <body>
+<div class="wrap">
+  <div class="hero">
+    <h1>出張費精算</h1>
+    <div class="badge-row">
+      <button class="badge-btn" id="saveBtn" type="button">保存</button>
+      <button class="badge-btn" id="resetBtn" type="button">↺ リセット</button>
+      <div class="version">ver. 2026.04.13.9</div>
+    </div>
+  </div>
 
-<h1>出張費精算（サンプル）</h1>
+  <div class="grid">
+    <section class="card">
+      <div class="card-header">基本情報</div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>氏名</label>
+            <input id="empName" placeholder="氏名" />
+          </div>
+          <div class="field">
+            <label>所属</label>
+            <input id="dept" placeholder="所属" />
+          </div>
+          <div class="field">
+            <label>役職</label>
+            <select id="position">
+              <option value="">選択してください</option>
+              <option>本部長</option>
+              <option>副本部長</option>
+              <option>部長</option>
+              <option>副部長</option>
+              <option>課長</option>
+              <option>副課長</option>
+              <option>係長</option>
+              <option>主任</option>
+              <option>一般</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>出張種類</label>
+            <select id="tripType">
+              <option value="">選択してください</option>
+              <option>普通出張</option>
+              <option>近距離日帰り出張</option>
+              <option>長距離日帰り出張</option>
+              <option>海外出張</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>出発日</label>
+            <input id="startDate" type="date" />
+          </div>
+          <div class="field">
+            <label>帰着日</label>
+            <input id="endDate" type="date" />
+          </div>
+          <div class="field w4">
+            <label>出張先</label>
+            <input id="destination" placeholder="例）大阪、名古屋、台北" />
+          </div>
+          <div class="field">
+            <label>銀座からの距離 (km)</label>
+            <input id="distanceKm" type="number" min="0" step="0.1" placeholder="0" />
+          </div>
+
+          <div class="field">
+            <label>出張手当単価</label>
+            <input id="allowanceUnit" type="number" min="0" step="1" placeholder="0" />
+          </div>
+          <div class="field">
+            <label>休日出勤日数</label>
+            <input id="holidayWorkDays" type="number" min="0" step="1" value="0" />
+          </div>
+          <div class="field">
+            <label>振替休日数</label>
+            <input id="substituteDays" type="number" min="0" step="1" value="0" />
+          </div>
+          <div class="field w6">
+            <label>出張目的・備考</label>
+            <textarea id="tripMemo" rows="2" placeholder="目的、訪問先、補足など"></textarea>
+          </div>
+        </div>
+
+        <div class="summary-boxes">
+          <div class="summary-box">
+            <div class="ttl">出張日数</div>
+            <div class="val" id="tripDaysView">0</div>
+          </div>
+          <div class="summary-box">
+            <div class="ttl">休日出勤</div>
+            <div class="val" id="holidayWorkView">0</div>
+          </div>
+          <div class="summary-box">
+            <div class="ttl">振替休日</div>
+            <div class="val" id="substituteView">0</div>
+          </div>
+          <div class="summary-box">
+            <div class="ttl">日当合計</div>
+            <div class="val" id="allowanceTotalView">¥0</div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn-soft" id="suggestBtn" type="button">距離から区分判定</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">交通費</div>
+      <div class="table-wrap">
+        <table id="transportTable">
+          <thead>
+            <tr>
+              <th style="width:120px;">日付</th>
+              <th style="width:130px;">交通機関</th>
+              <th>発地</th>
+              <th>着地</th>
+              <th style="width:130px;">金額</th>
+              <th>備考</th>
+              <th style="width:70px;">削除</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card-body">
+        <div class="toolbar">
+          <button class="btn-primary" type="button" onclick="addTransportRow()">＋ 行追加</button>
+        </div>
+      </div>
+      <div class="total-line">
+        <span>交通費合計</span>
+        <span id="transportTotal">¥0</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">宿泊費</div>
+      <div class="table-wrap">
+        <table id="lodgingTable">
+          <thead>
+            <tr>
+              <th style="width:120px;">日付</th>
+              <th>宿泊先</th>
+              <th style="width:130px;">金額</th>
+              <th>備考</th>
+              <th style="width:70px;">削除</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card-body">
+        <div class="toolbar">
+          <button class="btn-primary" type="button" onclick="addLodgingRow()">＋ 行追加</button>
+        </div>
+      </div>
+      <div class="total-line">
+        <span>宿泊費合計</span>
+        <span id="lodgingTotal">¥0</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">その他</div>
+      <div class="table-wrap">
+        <table id="otherTable">
+          <thead>
+            <tr>
+              <th style="width:120px;">日付</th>
+              <th style="width:110px;">区分</th>
+              <th style="width:130px;">参加者</th>
+              <th style="width:130px;">金額</th>
+              <th>備考</th>
+              <th style="width:70px;">削除</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card-body">
+        <div class="toolbar">
+          <button class="btn-primary" type="button" onclick="addOtherRow()">＋ 行追加</button>
+        </div>
+      </div>
+      <div class="total-line">
+        <span>その他合計</span>
+        <span id="otherTotal">¥0</span>
+      </div>
+    </section>
+
+    <section class="grand">
+      <div class="grand-grid">
+        <div class="grand-item">
+          <div class="k">交通費</div>
+          <div class="v" id="grandTransport">¥0</div>
+        </div>
+        <div class="grand-item">
+          <div class="k">宿泊費</div>
+          <div class="v" id="grandLodging">¥0</div>
+        </div>
+        <div class="grand-item">
+          <div class="k">その他</div>
+          <div class="v" id="grandOther">¥0</div>
+        </div>
+        <div class="grand-item">
+          <div class="k">総合計</div>
+          <div class="v" id="grandTotal">¥0</div>
+        </div>
+      </div>
+      <div class="note" id="formulaNote">日当＝出張手当単価 × 出張日数</div>
+    </section>
+  </div>
+
+  <div class="footer">この版は復旧用の単一HTMLです。GitHub Pages にそのままアップできます。</div>
+</div>
 
 <script>
-const APP_VERSION = '2026.04.13.9';
+const STORAGE_KEY = 'trip-expense-app-202604139';
 
-async function checkVersion() {
-  try {
-    const res = await fetch('./version.json?ts=' + Date.now(), { cache: 'no-store' });
-    const data = await res.json();
-    if (data.version !== APP_VERSION) {
-      alert('新しいバージョンがあります');
-    }
-  } catch(e) {}
+function yen(v){
+  const n = Number(v || 0);
+  return '¥' + n.toLocaleString('ja-JP');
 }
+function num(v){
+  const n = parseFloat(v);
+  return isFinite(n) ? n : 0;
+}
+function daysBetween(a,b){
+  if(!a || !b) return 0;
+  const s = new Date(a + 'T00:00:00');
+  const e = new Date(b + 'T00:00:00');
+  if(isNaN(s) || isNaN(e) || e < s) return 0;
+  return Math.floor((e - s) / 86400000) + 1;
+}
+function autoBlankStyle(){
+  document.querySelectorAll('input, select, textarea').forEach(el=>{
+    const empty = (el.value ?? '').toString().trim() === '';
+    if(el.type === 'number') {
+      el.classList.toggle('blank', empty);
+    } else if(el.tagName === 'SELECT') {
+      el.classList.toggle('blank', empty);
+    } else {
+      el.classList.toggle('blank', empty);
+    }
+  });
+}
+function updateAllowanceUnit(){
+  const pos = document.getElementById('position').value;
+  const higher = ['本部長','副本部長','部長','副部長'];
+  const unit = higher.includes(pos) ? 4000 : 3500;
+  if(pos) document.getElementById('allowanceUnit').value = unit;
+}
+function suggestTripType(){
+  const km = num(document.getElementById('distanceKm').value);
+  const tripType = document.getElementById('tripType');
+  let v = '';
+  if(km >= 200) v = '長距離日帰り出張';
+  else if(km > 0 && km < 200) v = '近距離日帰り出張';
+  if(v) tripType.value = v;
+  recalc();
+}
+function rowTransport(data={}){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="date" class="r-date" value="${data.date||''}"></td>
+    <td>
+      <select class="r-kind">
+        ${['','電車','新幹線','バス','タクシー','飛行機','フェリー（船）','レンタカー','ガソリン','その他'].map(v=>`<option ${data.kind===v?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </td>
+    <td><input class="r-from" value="${data.from||''}" placeholder="発地"></td>
+    <td><input class="r-to" value="${data.to||''}" placeholder="着地"></td>
+    <td><input type="number" class="r-amount num" min="0" step="1" value="${data.amount||''}" placeholder="0"></td>
+    <td><input class="r-memo" value="${data.memo||''}" placeholder="備考"></td>
+    <td class="right"><button class="btn-danger" type="button">削除</button></td>`;
+  tr.querySelector('button').onclick = ()=>{ tr.remove(); recalc(); save(); };
+  tr.querySelectorAll('input,select').forEach(el=>el.addEventListener('input', ()=>{ recalc(); save(); }));
+  return tr;
+}
+function rowLodging(data={}){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="date" class="r-date" value="${data.date||''}"></td>
+    <td><input class="r-place" value="${data.place||''}" placeholder="宿泊先"></td>
+    <td><input type="number" class="r-amount num" min="0" step="1" value="${data.amount||''}" placeholder="0"></td>
+    <td><input class="r-memo" value="${data.memo||''}" placeholder="備考"></td>
+    <td class="right"><button class="btn-danger" type="button">削除</button></td>`;
+  tr.querySelector('button').onclick = ()=>{ tr.remove(); recalc(); save(); };
+  tr.querySelectorAll('input').forEach(el=>el.addEventListener('input', ()=>{ recalc(); save(); }));
+  return tr;
+}
+function rowOther(data={}){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="date" class="r-date" value="${data.date||''}"></td>
+    <td>
+      <select class="r-kind">
+        ${['','会議費','接待費','昼食','夕食','駐車場','宅配便','雑費','その他'].map(v=>`<option ${data.kind===v?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </td>
+    <td><input class="r-participants" value="${data.participants||''}" placeholder="参加者"></td>
+    <td><input type="number" class="r-amount num" min="0" step="1" value="${data.amount||''}" placeholder="0"></td>
+    <td><input class="r-memo" value="${data.memo||''}" placeholder="備考"></td>
+    <td class="right"><button class="btn-danger" type="button">削除</button></td>`;
+  tr.querySelector('button').onclick = ()=>{ tr.remove(); recalc(); save(); };
+  tr.querySelectorAll('input,select').forEach(el=>el.addEventListener('input', ()=>{ recalc(); save(); }));
+  return tr;
+}
+function addTransportRow(data={}){ document.querySelector('#transportTable tbody').appendChild(rowTransport(data)); autoBlankStyle(); }
+function addLodgingRow(data={}){ document.querySelector('#lodgingTable tbody').appendChild(rowLodging(data)); autoBlankStyle(); }
+function addOtherRow(data={}){ document.querySelector('#otherTable tbody').appendChild(rowOther(data)); autoBlankStyle(); }
 
-checkVersion();
+function collectRows(selector, type){
+  return [...document.querySelectorAll(selector)].map(tr=>{
+    if(type==='transport'){
+      return {
+        date: tr.querySelector('.r-date').value,
+        kind: tr.querySelector('.r-kind').value,
+        from: tr.querySelector('.r-from').value,
+        to: tr.querySelector('.r-to').value,
+        amount: tr.querySelector('.r-amount').value,
+        memo: tr.querySelector('.r-memo').value,
+      };
+    }
+    if(type==='lodging'){
+      return {
+        date: tr.querySelector('.r-date').value,
+        place: tr.querySelector('.r-place').value,
+        amount: tr.querySelector('.r-amount').value,
+        memo: tr.querySelector('.r-memo').value,
+      };
+    }
+    return {
+      date: tr.querySelector('.r-date').value,
+      kind: tr.querySelector('.r-kind').value,
+      participants: tr.querySelector('.r-participants').value,
+      amount: tr.querySelector('.r-amount').value,
+      memo: tr.querySelector('.r-memo').value,
+    };
+  });
+}
+function sumAmounts(selector){
+  return [...document.querySelectorAll(selector)].reduce((s, el)=>s + num(el.value), 0);
+}
+function getFormData(){
+  return {
+    empName: empName.value,
+    dept: dept.value,
+    position: position.value,
+    tripType: tripType.value,
+    startDate: startDate.value,
+    endDate: endDate.value,
+    destination: destination.value,
+    distanceKm: distanceKm.value,
+    allowanceUnit: allowanceUnit.value,
+    holidayWorkDays: holidayWorkDays.value,
+    substituteDays: substituteDays.value,
+    tripMemo: tripMemo.value,
+    transportRows: collectRows('#transportTable tbody tr', 'transport'),
+    lodgingRows: collectRows('#lodgingTable tbody tr', 'lodging'),
+    otherRows: collectRows('#otherTable tbody tr', 'other')
+  };
+}
+function setFormData(d){
+  Object.keys(d || {}).forEach(k=>{
+    const el = document.getElementById(k);
+    if(el) el.value = d[k] ?? '';
+  });
+  document.querySelector('#transportTable tbody').innerHTML = '';
+  document.querySelector('#lodgingTable tbody').innerHTML = '';
+  document.querySelector('#otherTable tbody').innerHTML = '';
+  (d.transportRows || []).forEach(addTransportRow);
+  (d.lodgingRows || []).forEach(addLodgingRow);
+  (d.otherRows || []).forEach(addOtherRow);
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(getFormData()));
+}
+function load(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw){
+    addTransportRow();
+    addLodgingRow();
+    addOtherRow();
+    recalc();
+    return;
+  }
+  try{
+    setFormData(JSON.parse(raw));
+  }catch(e){
+    addTransportRow(); addLodgingRow(); addOtherRow();
+  }
+  recalc();
+}
+function recalc(){
+  const tripDays = daysBetween(startDate.value, endDate.value);
+  const holidayWork = num(holidayWorkDays.value);
+  const substitute = num(substituteDays.value);
+  const allowanceTotal = num(allowanceUnit.value) * tripDays;
+
+  const transport = sumAmounts('#transportTable .r-amount');
+  const lodging = sumAmounts('#lodgingTable .r-amount');
+  const other = sumAmounts('#otherTable .r-amount');
+  const grand = transport + lodging + other + allowanceTotal;
+
+  tripDaysView.textContent = tripDays.toLocaleString('ja-JP');
+  holidayWorkView.textContent = holidayWork.toLocaleString('ja-JP');
+  substituteView.textContent = substitute.toLocaleString('ja-JP');
+  allowanceTotalView.textContent = yen(allowanceTotal);
+
+  transportTotal.textContent = yen(transport);
+  lodgingTotal.textContent = yen(lodging);
+  otherTotal.textContent = yen(other);
+
+  grandTransport.textContent = yen(transport);
+  grandLodging.textContent = yen(lodging);
+  grandOther.textContent = yen(other);
+  grandTotal.textContent = yen(grand);
+  formulaNote.textContent = `日当＝${yen(allowanceUnit.value || 0)} × ${tripDays}日　／　総合計＝交通費＋宿泊費＋その他＋日当`;
+
+  if(startDate.value && endDate.value && new Date(endDate.value) < new Date(startDate.value)){
+    endDate.style.borderColor = '#d33';
+  } else {
+    endDate.style.borderColor = '';
+  }
+  autoBlankStyle();
+}
+document.querySelectorAll('input, select, textarea').forEach(el=>{
+  el.addEventListener('input', ()=>{ 
+    if(el.id==='position') updateAllowanceUnit();
+    recalc(); 
+    save(); 
+  });
+});
+document.getElementById('saveBtn').onclick = ()=>{
+  save();
+  alert('保存しました');
+};
+document.getElementById('resetBtn').onclick = ()=>{
+  if(!confirm('入力内容をリセットしますか？')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+};
+document.getElementById('suggestBtn').onclick = ()=>{
+  suggestTripType();
+  save();
+};
+document.getElementById('startDate').addEventListener('change', ()=>{ recalc(); save(); });
+document.getElementById('endDate').addEventListener('change', ()=>{
+  if(startDate.value && endDate.value && new Date(endDate.value) < new Date(startDate.value)){
+    alert('帰着日が出発日より前です。');
+  }
+  recalc(); save();
+});
+document.getElementById('destination').addEventListener('input', ()=>{
+  distanceKm.value = '';
+});
+window.addEventListener('beforeunload', save);
+
+load();
 </script>
-
 </body>
 </html>
