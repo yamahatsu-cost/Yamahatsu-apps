@@ -453,6 +453,58 @@
   }
 }
 
+
+
+/* 改良版 削除ボタン */
+.btn-delete-icon{
+  background:#f3f6fa;
+  color:#9aa3af;
+  border:none;
+  border-radius:8px;
+  width:34px;
+  height:34px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:0.15s;
+}
+.btn-delete-icon:hover{
+  background:#fde8e8;
+  color:#c62828;
+}
+.btn-delete-icon svg{
+  width:16px;
+  height:16px;
+}
+
+.btn-delete-icon{
+  background:#fde8e8;
+  color:#c62828;
+  border:none;
+  border-radius:8px;
+  width:32px;
+  height:32px;
+  padding:0;
+  font-size:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.btn-delete-icon:hover{
+  background:#f8cfcf;
+}
+
+
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
 </style>
 </head>
 <body>
@@ -462,7 +514,10 @@
         <div class="header-title">出張費精算</div>
         <div class="header-sub">山發日本株式会社　社内アプリ</div>
       </div>
+      <div class="header-actions">
+      <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
       <button class="header-badge-btn" id="headerResetBtn" type="button">リセット</button>
+      </div>
     </div>
   </header>
 
@@ -690,7 +745,7 @@
           <div class="section-sub">仮払い入力がある場合は差引後を表示します。</div>
         </div>
         <div class="inline">
-          <button class="btn btn-secondary" id="saveBtn" type="button">入力内容を保存</button>
+          
         </div>
       </div>
       <div class="grid grid-4">
@@ -802,7 +857,7 @@
       sumAllowance: document.getElementById('sumAllowance'),
       grossTotal: document.getElementById('grossTotal'),
       netTotal: document.getElementById('netTotal'),
-      saveBtn: document.getElementById('saveBtn'),
+      headerSaveBtn: document.getElementById('headerSaveBtn'),
       resetBtn: document.getElementById('resetBtn'),
       updatePopup: document.getElementById('updatePopup'),
       reloadBtn: document.getElementById('reloadBtn'),
@@ -1206,8 +1261,15 @@
       const td = tdBase();
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'btn btn-danger';
-      btn.textContent = '削除';
+      btn.className = 'btn-delete-icon';
+      btn.innerHTML = `
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <path d="M3 6h18"/>
+  <path d="M8 6V4h8v2"/>
+  <path d="M19 6l-1 14H6L5 6"/>
+  <path d="M10 11v6"/>
+  <path d="M14 11v6"/>
+</svg>`;
       btn.addEventListener('click', () => {
         state[kind].splice(index, 1);
         renderRows(kind);
@@ -1511,7 +1573,7 @@
       });
       els.distanceBtn.addEventListener('click', calculateDistance);
       
-      els.saveBtn.addEventListener('click', () => persistDraft(true));
+      els.headerSaveBtn.addEventListener('click', () => persistDraft(true));
       els.headerResetBtn.addEventListener('click', resetAll);
       els.reloadBtn.addEventListener('click', () => location.reload());
       els.dismissUpdateBtn.addEventListener('click', () => els.updatePopup.classList.remove('active'));
