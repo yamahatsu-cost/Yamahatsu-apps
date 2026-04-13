@@ -1,9 +1,0 @@
-{
-  "name": "出張費精算",
-  "short_name": "出張費精算",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0b57d0",
-  "icons": []
-}
