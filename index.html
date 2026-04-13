@@ -328,14 +328,14 @@
     }
 
     .summary-box .value {
-      font-size: 20px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 700;
       text-align: right;
     }
 
     .metric-value {
-      font-size: 18px !important;
-      font-weight: 800;
+      font-size: 15px !important;
+      font-weight: 700;
     }
 
     .grand-total {
@@ -344,7 +344,7 @@
     }
 
     .grand-total .value {
-      font-size: 26px;
+      font-size: 18px;
       color: #0f418f;
       text-align: right;
     }
@@ -438,7 +438,7 @@
         </div>
         <div class="inline">
                     <button class="btn btn-secondary" id="distanceBtn" type="button">銀座から距離計算</button>
-          <button class="btn btn-primary" id="recalcBtn" type="button">計算する</button>
+          
         </div>
       </div>
 
@@ -505,11 +505,11 @@
           <div class="value metric-value" id="tripDaysText">0.0日</div>
         </div>
         <div class="summary-box">
-          <div class="label">休日出勤日数</div>
+          <div class="label">休日出勤</div>
           <div class="value metric-value" id="holidayWorkText">0日</div>
         </div>
         <div class="summary-box">
-          <div class="label">振替代休日数</div>
+          <div class="label">振替代休</div>
           <div class="value metric-value" id="substituteText">0日</div>
         </div>
       </div>
@@ -1470,10 +1470,7 @@
         calculateAll();
       });
       els.distanceBtn.addEventListener('click', calculateDistance);
-      els.recalcBtn.addEventListener('click', async () => {
-        if (!validateRequiredFields()) return;
-        await prepareHolidayData();
-      });
+      
       els.saveBtn.addEventListener('click', () => persistDraft(true));
       els.resetBtn.addEventListener('click', resetAll);
       els.reloadBtn.addEventListener('click', () => location.reload());
