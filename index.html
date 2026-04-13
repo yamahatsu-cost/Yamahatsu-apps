@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>出張費精算</title>
-  <meta name="theme-color" content="#0b57d0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出張費精算</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 </head>
 <body>
 <script>
@@ -15,11 +14,13 @@
   const APP_VERSION = "2026.04.13.9";
   const TARGET = "./app-202604139.html";
   const key = "trip_expense_version";
+
   const old = localStorage.getItem(key);
   if (old && old !== APP_VERSION) {
     alert("新しいバージョンがあります。更新します。");
   }
   localStorage.setItem(key, APP_VERSION);
+
   location.replace(TARGET + "?v=" + APP_VERSION + "&t=" + Date.now());
 })();
 </script>
