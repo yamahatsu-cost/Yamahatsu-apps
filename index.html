@@ -72,6 +72,25 @@
       white-space: nowrap;
     }
 
+    .header-badge-btn {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.24);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      min-width: auto;
+      box-shadow: none;
+    }
+
+    .header-badge-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-1px);
+    }
+
     .container {
       max-width: 1200px;
       margin: 18px auto 48px;
@@ -443,7 +462,7 @@
         <div class="header-title">出張費精算</div>
         <div class="header-sub">山發日本株式会社　社内アプリ</div>
       </div>
-      <div class="header-badge" id="versionBadge">ver. 2026.04.13.5</div>
+      <button class="header-badge-btn" id="headerResetBtn" type="button">リセット</button>
     </div>
   </header>
 
@@ -672,7 +691,6 @@
         </div>
         <div class="inline">
           <button class="btn btn-secondary" id="saveBtn" type="button">入力内容を保存</button>
-          <button class="btn btn-ghost" id="resetBtn" type="button">リセット</button>
         </div>
       </div>
       <div class="grid grid-4">
@@ -789,7 +807,7 @@
       updatePopup: document.getElementById('updatePopup'),
       reloadBtn: document.getElementById('reloadBtn'),
       dismissUpdateBtn: document.getElementById('dismissUpdateBtn'),
-      versionBadge: document.getElementById('versionBadge'),
+      headerResetBtn: document.getElementById('headerResetBtn'),
     };
 
     function yen(value) {
@@ -1494,13 +1512,12 @@
       els.distanceBtn.addEventListener('click', calculateDistance);
       
       els.saveBtn.addEventListener('click', () => persistDraft(true));
-      els.resetBtn.addEventListener('click', resetAll);
+      els.headerResetBtn.addEventListener('click', resetAll);
       els.reloadBtn.addEventListener('click', () => location.reload());
       els.dismissUpdateBtn.addEventListener('click', () => els.updatePopup.classList.remove('active'));
     }
 
     async function init() {
-      els.versionBadge.textContent = `ver. ${APP_VERSION}`;
       renderHotelDatalist();
       restoreDraft();
       els.advancePayment.value = formatCurrencyInput(els.advancePayment.value);
