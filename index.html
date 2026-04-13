@@ -1,48 +1,26 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>出張費精算</title>
   <meta name="theme-color" content="#0b57d0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="出張費精算" />
-
-  <link rel="manifest" href="./site.webmanifest?v=2026.04.13.6" />
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=2026.04.13.6" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=2026.04.13.6" />
-  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=2026.04.13.6" />
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=2026.04.13.6" />
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png?v=2026.04.13.6" />
-  <link rel="shortcut icon" href="./favicon.ico?v=2026.04.13.6" />
-
 </head>
 <body>
 <script>
 (function(){
-  const APP_VERSION = "2026.04.13.6";
-  const TARGET = "./app-202604136.html";
-  const VERSION_KEY = "trip-expense-launcher-version";
-  try {
-    const old = localStorage.getItem(VERSION_KEY);
-    if (old && old !== APP_VERSION) {
-      alert("新しいバージョンがあります。最新版を開きます。");
-    }
-    localStorage.setItem(VERSION_KEY, APP_VERSION);
-  } catch(e) {}
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister()))).catch(() => {}).finally(openLatest);
-  } else {
-    openLatest();
+  const APP_VERSION = "2026.04.13.9";
+  const TARGET = "./app-202604139.html";
+  const key = "trip_expense_version";
+  const old = localStorage.getItem(key);
+  if (old && old !== APP_VERSION) {
+    alert("新しいバージョンがあります。更新します。");
   }
-  function openLatest(){
-    location.replace(TARGET + "?v=" + encodeURIComponent(APP_VERSION) + "&t=" + Date.now());
-  }
+  localStorage.setItem(key, APP_VERSION);
+  location.replace(TARGET + "?v=" + APP_VERSION + "&t=" + Date.now());
 })();
 </script>
 </body>
