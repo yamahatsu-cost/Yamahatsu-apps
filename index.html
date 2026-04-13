@@ -12,46 +12,6 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="出張費精算" />
-  <style>
-    body {
-      margin: 0;
-      font-family: "Meiryo", "Hiragino Kaku Gothic ProN", sans-serif;
-      background: #f4f7fb;
-      color: #1c2430;
-      display: grid;
-      place-items: center;
-      min-height: 100vh;
-    }
-    .box {
-      background: #fff;
-      border: 1px solid #d7e0ee;
-      border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(13, 33, 66, 0.08);
-      padding: 24px 28px;
-      width: min(92vw, 420px);
-      text-align: center;
-    }
-    .title {
-      font-size: 28px;
-      font-weight: 800;
-      color: #0b57d0;
-      margin-bottom: 8px;
-    }
-    .sub {
-      color: #687284;
-      font-size: 13px;
-      margin-bottom: 18px;
-    }
-    .badge {
-      display: inline-block;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: #edf4ff;
-      color: #1f4d95;
-      font-size: 12px;
-      font-weight: 700;
-    }
-  </style>
 
   <link rel="manifest" href="./site.webmanifest?v=2026.04.13.6" />
   <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=2026.04.13.6" />
@@ -63,40 +23,27 @@
 
 </head>
 <body>
-  <div class="box">
-    <div class="title">出張費精算</div>
-    <div class="sub">最新版を確認しています…</div>
-    <div class="badge">ver. 2026.04.13.6</div>
-  </div>
-
-  <script>
-    (function () {
-      const APP_VERSION = "2026.04.13.6";
-      const TARGET = "./app-202604136.html";
-      const VERSION_KEY = "trip-expense-launcher-version";
-
-      try {
-        const old = localStorage.getItem(VERSION_KEY);
-        if (old && old !== APP_VERSION) {
-          alert("新しいバージョンがあります。最新版を開きます。");
-        }
-        localStorage.setItem(VERSION_KEY, APP_VERSION);
-      } catch (e) {}
-
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations()
-          .then(regs => Promise.all(regs.map(r => r.unregister())))
-          .catch(() => {})
-          .finally(openLatest);
-      } else {
-        openLatest();
-      }
-
-      function openLatest() {
-        const next = TARGET + "?v=" + encodeURIComponent(APP_VERSION) + "&t=" + Date.now();
-        location.replace(next);
-      }
-    })();
-  </script>
+<script>
+(function(){
+  const APP_VERSION = "2026.04.13.6";
+  const TARGET = "./app-202604136.html";
+  const VERSION_KEY = "trip-expense-launcher-version";
+  try {
+    const old = localStorage.getItem(VERSION_KEY);
+    if (old && old !== APP_VERSION) {
+      alert("新しいバージョンがあります。最新版を開きます。");
+    }
+    localStorage.setItem(VERSION_KEY, APP_VERSION);
+  } catch(e) {}
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => Promise.all(regs.map(r => r.unregister()))).catch(() => {}).finally(openLatest);
+  } else {
+    openLatest();
+  }
+  function openLatest(){
+    location.replace(TARGET + "?v=" + encodeURIComponent(APP_VERSION) + "&t=" + Date.now());
+  }
+})();
+</script>
 </body>
 </html>
