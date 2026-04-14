@@ -428,6 +428,109 @@
 
     .update-popup.active { display: block; }
 
+    .toast-stack {
+      position: fixed;
+      inset: 0;
+      z-index: 140;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      padding: 20px;
+    }
+
+    .toast-notice {
+      pointer-events: auto;
+      background: rgba(0,0,0,0.88);
+      color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+      padding: 18px 22px;
+      width: min(420px, calc(100vw - 36px));
+      text-align: center;
+      opacity: 0;
+      transform: translateY(28px) scale(0.98);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .toast-notice.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .toast-notice.hide {
+      opacity: 0;
+      transform: translateY(28px) scale(0.98);
+    }
+
+    .toast-notice.success { border-color: rgba(38, 166, 91, 0.55); }
+    .toast-notice.error { border-color: rgba(229, 57, 53, 0.55); }
+    .toast-notice.info { border-color: rgba(66, 165, 245, 0.55); }
+    .toast-notice.warn { border-color: rgba(255, 179, 0, 0.55); }
+
+    .toast-message {
+      white-space: pre-line;
+      font-size: 16px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .toast-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .toast-actions .btn {
+      min-width: 96px;
+      padding: 10px 14px;
+    }
+
+    .save-toast-stack {
+      position: fixed;
+      left: 50%;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      z-index: 141;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      width: min(360px, calc(100vw - 32px));
+    }
+
+    .save-toast {
+      pointer-events: auto;
+      background: rgba(0,0,0,0.82);
+      color: #fff;
+      border-radius: 999px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+      padding: 10px 16px;
+      width: auto;
+      max-width: 100%;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      border: 1px solid rgba(255,255,255,0.1);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .save-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .save-toast.hide {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
     .footer-note {
       text-align: center;
       color: var(--muted);
@@ -474,6 +577,12 @@
     max-width: 100%;
     margin: 0;
     border-radius: 0 0 8px 8px;
+  }
+  .toast-stack {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    max-width: none;
   }
 }
 
@@ -1118,6 +1227,9 @@ td select {
     </div>
   </div>
 
+  <div class="toast-stack" id="toastStack"></div>
+  <div class="save-toast-stack" id="saveToastStack"></div>
+
   <div class="update-popup" id="updatePopup">
     <div style="font-weight:800; margin-bottom:6px;">新しいバージョンがあります</div>
     <div class="small muted" style="margin-bottom:10px;">更新して最新の出張費精算アプリを開いてください。</div>
@@ -1267,6 +1379,8 @@ td select {
       reloadBtn: document.getElementById('reloadBtn'),
       dismissUpdateBtn: document.getElementById('dismissUpdateBtn'),
       headerResetBtn: document.getElementById('headerResetBtn'),
+      toastStack: document.getElementById('toastStack'),
+      saveToastStack: document.getElementById('saveToastStack'),
     };
 
     function yen(value) {
@@ -1295,6 +1409,117 @@ td select {
       return d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
     }
 
+    function vibrateNotice(pattern = [18]) {
+      try {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(pattern);
+        }
+      } catch (e) {}
+    }
+
+    function showToast(message, type = 'info', options = {}) {
+      const stack = els.toastStack || document.body;
+      if (options.clearOthers !== false) {
+        stack.querySelectorAll('.toast-notice').forEach(node => {
+          node.classList.remove('show');
+          node.classList.add('hide');
+          setTimeout(() => node.remove(), 220);
+        });
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast-notice ${type}`;
+      const textHtml = String(message || '').replace(/\n/g, '<br>');
+      toast.innerHTML = `<div class="toast-message">${textHtml}</div>`;
+      stack.appendChild(toast);
+      if (options.vibrate !== false) {
+        const patternMap = {
+          success: [12],
+          info: [12],
+          warn: [20, 50, 20],
+          error: [30, 70, 30]
+        };
+        vibrateNotice(patternMap[type] || [18]);
+      }
+      requestAnimationFrame(() => toast.classList.add('show'));
+
+      const duration = Number(options.duration ?? 1000);
+      const keep = !!options.keep;
+      const onClose = () => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 220);
+      };
+
+      if (!keep) {
+        setTimeout(onClose, duration);
+      }
+      return { element: toast, close: onClose };
+    }
+
+    function showSaveToast(message = '保存しました', options = {}) {
+      const stack = els.saveToastStack || document.body;
+      stack.querySelectorAll('.save-toast').forEach(node => {
+        node.classList.remove('show');
+        node.classList.add('hide');
+        setTimeout(() => node.remove(), 200);
+      });
+
+      const toast = document.createElement('div');
+      toast.className = 'save-toast';
+      toast.textContent = String(message || '保存しました');
+      stack.appendChild(toast);
+      if (options.vibrate !== false) {
+        vibrateNotice([10]);
+      }
+      requestAnimationFrame(() => toast.classList.add('show'));
+
+      const duration = Number(options.duration ?? 800);
+      const close = () => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 200);
+      };
+      setTimeout(close, duration);
+      return { element: toast, close };
+    }
+
+    function showConfirmToast(message, options = {}) {
+      return new Promise(resolve => {
+        const stack = els.toastStack || document.body;
+        stack.querySelectorAll('.toast-notice').forEach(node => {
+          node.classList.remove('show');
+          node.classList.add('hide');
+          setTimeout(() => node.remove(), 220);
+        });
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-notice warn';
+        const textHtml = String(message || '').replace(/\n/g, '<br>');
+        toast.innerHTML = `
+          <div class="toast-message">${textHtml}</div>
+          <div class="toast-actions">
+            <button type="button" class="btn btn-ghost" data-action="cancel">キャンセル</button>
+            <button type="button" class="btn btn-primary" data-action="ok">OK</button>
+          </div>`;
+        stack.appendChild(toast);
+        if (options.vibrate !== false) {
+          vibrateNotice([20, 50, 20]);
+        }
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        const close = (result) => {
+          toast.classList.remove('show');
+          toast.classList.add('hide');
+          setTimeout(() => toast.remove(), 220);
+          resolve(result);
+        };
+
+        toast.querySelector('[data-action="cancel"]').addEventListener('click', () => close(false));
+        toast.querySelector('[data-action="ok"]').addEventListener('click', () => close(true));
+      });
+    }
+
     function buildUfJRatePageUrl(dateStr) {
       const date = toDate(dateStr);
       if (!date) return '';
@@ -1320,12 +1545,12 @@ td select {
     function openDepartDateFxPage() {
       const dateStr = els.departDate.value;
       if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        alert('出発日を選択してください。');
+        showToast('出発日を選択してください。', 'warn');
         return;
       }
       const url = buildUfJRatePageUrl(dateStr);
       if (!url) {
-        alert('出発日を選択してください。');
+        showToast('出発日を選択してください。', 'warn');
         return;
       }
       openUfJReferencePage(url);
@@ -1376,7 +1601,7 @@ td select {
         els.returnDate.value = '';
         refreshDatePlaceholderFields();
         if (showAlert) {
-          alert('帰着日は出発日以降の日付を選択してください。');
+          showToast('帰着日は出発日以降の日付を選択してください。', 'warn');
         }
         return false;
       }
@@ -2087,7 +2312,7 @@ td select {
           localStorage.setItem(HOTEL_KEY, JSON.stringify(merged));
           renderHotelDatalist();
         }
-        alert('入力内容を保存しました。');
+        showSaveToast('入力内容を保存しました');
       }
     }
 
@@ -2156,7 +2381,7 @@ td select {
       const destinationNameRaw = (els.destination.value || '').trim();
       const destinationName = destinationNameRaw ? destinationNameRaw + '出張' : '';
       if (!destinationName) {
-        alert('出張先/国名を入力してから保存してください。');
+        showToast('出張先/国名を入力してから保存してください。', 'warn');
         return;
       }
 
@@ -2178,15 +2403,14 @@ td select {
         renderHotelDatalist();
       }
 
-      alert(`「${destinationName}」として保存しました。
-同じ出張先名で保存すると上書きされます。`);
+      showSaveToast(`「${destinationName}」で保存しました`, { duration: 2200 });
     }
 
     function openSavedTripModal() {
       renderSavedTripOptions();
       const hasAny = els.savedTripSelect && els.savedTripSelect.options.length > 1;
       if (!hasAny) {
-        alert('保存済みデータがありません。');
+        showToast('保存済みデータがありません。', 'warn');
         return;
       }
       els.savedTripSelect.value = '';
@@ -2200,13 +2424,13 @@ td select {
     function applySavedTrip() {
       const name = els.savedTripSelect.value;
       if (!name) {
-        alert('呼び出す保存データを選択してください。');
+        showToast('呼び出す保存データを選択してください。', 'warn');
         return;
       }
       const savedTrips = getSavedTrips();
       const data = savedTrips[name];
       if (!data) {
-        alert('選択した保存データが見つかりません。');
+        showToast('選択した保存データが見つかりません。', 'error');
         renderSavedTripOptions();
         return;
       }
@@ -2218,14 +2442,15 @@ td select {
       calculateAll();
       persistDraft(false);
       closeSavedTripModal();
-      alert(`「${name}」の内容を呼び出しました。`);
+      showToast(`「${name}」の内容を呼び出しました。`, 'success');
     }
 
-    function resetAll() {
-
-      if (!confirm('入力内容をリセットします。よろしいですか？')) return;
+    async function resetAll() {
+      const ok = await showConfirmToast('入力内容をリセットします。よろしいですか？');
+      if (!ok) return;
       localStorage.removeItem(STORAGE_KEY);
-      location.reload();
+      showToast('入力内容をリセットします。', 'info', { duration: 900 });
+      setTimeout(() => location.reload(), 250);
     }
 
     function getHotelHistory() {
@@ -2263,7 +2488,7 @@ td select {
         syncTripTypeUI();
         calculateAll();
         if (showPopup) {
-          alert(`銀座からの距離判定により、出張種類を「${recommended}」へ自動修正しました。`);
+          showToast(`銀座からの距離判定により、出張種類を「${recommended}」へ自動修正しました。`, 'info', { duration: 3200 });
         }
         return true;
       }
@@ -2273,7 +2498,7 @@ td select {
     async function calculateDistance() {
       const destination = els.destination.value.trim();
       if (!destination) {
-        alert('出張先を入力してください。');
+        showToast('出張先を入力してください。', 'warn');
         return;
       }
       try {
@@ -2295,7 +2520,7 @@ td select {
         adjustTripTypeByDistance(true);
       } catch (err) {
         console.warn(err);
-        alert('距離を自動取得できませんでした。必要なら手入力してください。');
+        showToast('距離を自動取得できませんでした。必要なら手入力してください。', 'error', { duration: 3200 });
       } finally {
         els.distanceBtn.disabled = false;
         els.distanceBtn.textContent = '銀座から距離計算';
@@ -2313,7 +2538,7 @@ td select {
       if (overnightLike) basicRequired.push({ el: els.returnDate, name: '帰着日' });
       for (const item of basicRequired) {
         if (!item.el.value) {
-          alert(`${item.name}は必須入力です。`);
+          showToast(`${item.name}は必須入力です。`, 'warn');
           item.el.focus();
           return false;
         }
