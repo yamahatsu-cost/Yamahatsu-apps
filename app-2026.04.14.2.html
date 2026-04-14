@@ -858,6 +858,52 @@ td select {
   margin-bottom: 12px;
 }
 
+.modal-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.modal-toolbar .btn {
+  min-width: 88px;
+}
+
+
+.modal-card {
+  position: relative;
+}
+.modal-close-x {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 999px;
+  background: #f3f6fa;
+  color: #5b6575;
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.modal-close-x:hover {
+  background: #e8eef8;
+  color: #223248;
+}
+.modal-actions-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 </style>
 </head>
 <body>
@@ -1212,18 +1258,21 @@ td select {
 
   <div class="modal-backdrop" id="savedTripModal">
     <div class="modal-card">
+      <button class="modal-close-x" id="savedTripCancelBtn" type="button" aria-label="閉じる">×</button>
       <div class="modal-title">保存内容を呼出</div>
-      <div class="modal-sub">出張先名で保存されたデータを選択してください。</div>
+      <div class="modal-sub">保存済みデータを選択してください。データ共有は保存されているデータ全件をJSON化し、外部データ取込は追加・同名上書きします。</div>
       <div class="field">
         <label for="savedTripSelect">保存済みデータ</label>
         <select id="savedTripSelect">
           <option value="">選択してください</option>
         </select>
       </div>
-      <div class="inline" style="margin-top:14px; justify-content:flex-end;">
-        <button class="btn btn-ghost" id="savedTripCancelBtn" type="button">閉じる</button>
+      <div class="modal-actions-row">
         <button class="btn btn-primary" id="savedTripApplyBtn" type="button">呼出</button>
+        <button class="btn btn-secondary" id="savedTripShareBtn" type="button">データ共有</button>
+        <button class="btn btn-secondary" id="savedTripImportBtn" type="button">外部データ取込</button>
       </div>
+      <input id="savedTripImportInput" type="file" accept="application/json,.json" class="hidden" />
     </div>
   </div>
 
@@ -1240,9 +1289,9 @@ td select {
   </div>
 
   <script>
-    const APP_VERSION = '2026.04.15.1';
+    const APP_VERSION = '2026.04.15.8';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
-    const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v1';
+    const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
     const HOTEL_KEY = 'trip-expense-hotel-history-v1';
     const GINZA_COORDS = { lat: 35.6717, lon: 139.7650 };
@@ -1375,6 +1424,9 @@ td select {
       savedTripSelect: document.getElementById('savedTripSelect'),
       savedTripApplyBtn: document.getElementById('savedTripApplyBtn'),
       savedTripCancelBtn: document.getElementById('savedTripCancelBtn'),
+      savedTripShareBtn: document.getElementById('savedTripShareBtn'),
+      savedTripImportBtn: document.getElementById('savedTripImportBtn'),
+      savedTripImportInput: document.getElementById('savedTripImportInput'),
       updatePopup: document.getElementById('updatePopup'),
       reloadBtn: document.getElementById('reloadBtn'),
       dismissUpdateBtn: document.getElementById('dismissUpdateBtn'),
@@ -2355,6 +2407,208 @@ td select {
       }
     }
 
+    function formatSaveDateYYMD(dateStr) {
+      const date = toDate(dateStr);
+      if (!date) return '';
+      const yy = String(date.getFullYear()).slice(2);
+      const m = date.getMonth() + 1;
+      const d = date.getDate();
+      return `${yy}.${m}.${d}`;
+    }
+
+    function buildTripSaveName() {
+      const destinationName = (els.destination.value || '').trim();
+      const departDate = (els.departDate.value || '').trim();
+      if (!destinationName) {
+        showToast('出張先/国名を入力してから保存してください。', 'warn');
+        return '';
+      }
+      if (!departDate || !/^\d{4}-\d{2}-\d{2}$/.test(departDate)) {
+        showToast('出発日を入力してから保存してください。', 'warn');
+        return '';
+      }
+      const dateLabel = formatSaveDateYYMD(departDate);
+      if (!dateLabel) {
+        showToast('出発日を正しく入力してから保存してください。', 'warn');
+        return '';
+      }
+      return `${destinationName}出張 ${dateLabel}`;
+    }
+
+    function buildExportPayload(entries) {
+      return {
+        app: 'trip-expense-app',
+        version: APP_VERSION,
+        exportedAt: new Date().toISOString(),
+        entries: entries || {}
+      };
+    }
+
+    function parseImportPayload(raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.entries && typeof parsed.entries === 'object') {
+        return parsed.entries;
+      }
+      if (parsed && typeof parsed === 'object') {
+        return parsed;
+      }
+      throw new Error('invalid json');
+    }
+
+    function mergeImportedTrips(importedEntries) {
+      const current = getSavedTrips();
+      const normalized = {};
+      let newCount = 0;
+      let overwriteCount = 0;
+
+      Object.entries(importedEntries || {}).forEach(([name, value]) => {
+        if (!name || !value || typeof value !== 'object') return;
+        if (Object.prototype.hasOwnProperty.call(current, name)) {
+          overwriteCount += 1;
+        } else {
+          newCount += 1;
+        }
+        normalized[name] = {
+          ...value,
+          importedAt: new Date().toISOString()
+        };
+      });
+
+      const merged = { ...current, ...normalized };
+      setSavedTrips(merged);
+      renderSavedTripOptions();
+      return {
+        total: Object.keys(normalized).length,
+        newCount,
+        overwriteCount
+      };
+    }
+
+    function isMobileDevice() {
+      const ua = navigator.userAgent || '';
+      const touchCapable = navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (touchCapable && window.innerWidth <= 1024);
+    }
+
+    async function saveJsonForDesktop(blob, fileName) {
+      if (window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{
+            description: 'JSONファイル',
+            accept: { 'application/json': ['.json'] }
+          }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return false;
+    }
+
+    async function shareAllTrips() {
+      const savedTrips = getSavedTrips();
+      const names = Object.keys(savedTrips);
+      if (!names.length) {
+        showToast('共有する保存データがありません。', 'warn');
+        return;
+      }
+
+      const payload = buildExportPayload(savedTrips);
+      const jsonText = JSON.stringify(payload, null, 2);
+      const fileName = `trip-expense-saved-data-${new Date().toISOString().slice(0,10)}.json`;
+      const blob = new Blob([jsonText], { type: 'application/json' });
+      const file = new File([blob], fileName, { type: 'application/json' });
+      const isMobile = isMobileDevice();
+
+      if (isMobile) {
+        try {
+          if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            await navigator.share({
+              files: [file],
+              title: '出張費精算 保存データ共有',
+              text: `保存データ ${names.length}件のJSONです。メールアプリを選択して共有してください。`
+            });
+            showSaveToast('共有候補を開きました', { duration: 1600 });
+            return;
+          }
+        } catch (e) {
+          if (e && e.name === 'AbortError') return;
+          console.warn('共有シート起動失敗', e);
+        }
+
+        const subject = encodeURIComponent('出張費精算 保存データ');
+        const body = encodeURIComponent(`保存データ ${names.length}件のJSONを書き出しました。
+このメールに、ダウンロードされたJSONファイル「${fileName}」を添付して送信してください。`);
+        try {
+          window.location.href = `mailto:?subject=${subject}&body=${body}`;
+          setTimeout(() => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          }, 250);
+          showToast('メール候補を開き、JSONも書き出しました。添付は手動で行ってください。', 'info', { duration: 2200 });
+          return;
+        } catch (e) {
+          console.warn('mailto起動失敗', e);
+        }
+      }
+
+      try {
+        const usedPicker = await saveJsonForDesktop(blob, fileName);
+        if (usedPicker) {
+          showToast('保存先を選択する画面を開き、JSONを保存しました。', 'success', { duration: 2000 });
+        } else {
+          showToast('JSONを書き出しました。保存先フォルダからご確認ください。', 'info', { duration: 2200 });
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+        console.warn('PC保存失敗', e);
+        showToast('JSONの保存に失敗しました。', 'error');
+      }
+    }
+
+    function openImportDialog() {
+      if (!els.savedTripImportInput) return;
+      els.savedTripImportInput.value = '';
+      els.savedTripImportInput.click();
+    }
+
+    async function importTripsFromFile(file) {
+      if (!file) return;
+      try {
+        const raw = await file.text();
+        const entries = parseImportPayload(raw);
+        const result = mergeImportedTrips(entries);
+        if (!result.total) {
+          showToast('取込対象の保存データが見つかりませんでした。', 'warn');
+          return;
+        }
+        showToast(`外部データ取込が完了しました
+
+新規追加：${result.newCount}件
+上書き　：${result.overwriteCount}件`, 'success', { duration: 2200 });
+      } catch (e) {
+        console.warn('JSON取込失敗', e);
+        showToast('JSONの取込に失敗しました。', 'error');
+      }
+    }
+
     function getSavedTrips() {
       try {
         const raw = localStorage.getItem(SAVED_TRIPS_KEY);
@@ -2378,17 +2632,13 @@ td select {
     }
 
     function saveNamedTrip() {
-      const destinationNameRaw = (els.destination.value || '').trim();
-      const destinationName = destinationNameRaw ? destinationNameRaw + '出張' : '';
-      if (!destinationName) {
-        showToast('出張先/国名を入力してから保存してください。', 'warn');
-        return;
-      }
+      const tripSaveName = buildTripSaveName();
+      if (!tripSaveName) return;
 
       persistDraft(false);
 
       const savedTrips = getSavedTrips();
-      savedTrips[destinationName] = {
+      savedTrips[tripSaveName] = {
         ...collectFormState(),
         savedAt: new Date().toISOString()
       };
@@ -2403,18 +2653,17 @@ td select {
         renderHotelDatalist();
       }
 
-      showSaveToast(`「${destinationName}」で保存しました`, { duration: 2200 });
+      showSaveToast(`「${tripSaveName}」で保存しました`, { duration: 2200 });
     }
 
     function openSavedTripModal() {
       renderSavedTripOptions();
       const hasAny = els.savedTripSelect && els.savedTripSelect.options.length > 1;
-      if (!hasAny) {
-        showToast('保存済みデータがありません。', 'warn');
-        return;
-      }
       els.savedTripSelect.value = '';
       els.savedTripModal.classList.add('active');
+      if (!hasAny) {
+        showToast('保存済みデータはまだありません。取込は利用できます。', 'info');
+      }
     }
 
     function closeSavedTripModal() {
@@ -2693,6 +2942,18 @@ td select {
       els.headerLoadBtn.addEventListener('click', openSavedTripModal);
       els.savedTripApplyBtn.addEventListener('click', applySavedTrip);
       els.savedTripCancelBtn.addEventListener('click', closeSavedTripModal);
+      if (els.savedTripShareBtn) {
+        els.savedTripShareBtn.addEventListener('click', shareAllTrips);
+      }
+      if (els.savedTripImportBtn) {
+        els.savedTripImportBtn.addEventListener('click', openImportDialog);
+      }
+      if (els.savedTripImportInput) {
+        els.savedTripImportInput.addEventListener('change', e => {
+          const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+          importTripsFromFile(file);
+        });
+      }
       els.savedTripModal.addEventListener('click', e => {
         if (e.target === els.savedTripModal) closeSavedTripModal();
       });
