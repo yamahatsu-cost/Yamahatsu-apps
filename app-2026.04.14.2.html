@@ -775,7 +775,7 @@ td select {
         </div>
         <div class="inline" id="distanceBtnWrap">
                     <button class="btn btn-secondary" id="distanceBtn" type="button">銀座から距離計算</button>
-          
+                    <button class="btn btn-secondary hidden" id="fxRateBtn" type="button">出発日の為替レート</button>
         </div>
       </div>
 
@@ -1128,7 +1128,7 @@ td select {
   </div>
 
   <script>
-    const APP_VERSION = '2026.04.14.4';
+    const APP_VERSION = '2026.04.15.1';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v1';
     const DISMISSED_KEY = 'dismissed_version';
@@ -1233,6 +1233,7 @@ td select {
       holidayWorkText: document.getElementById('holidayWorkText'),
       substituteText: document.getElementById('substituteText'),
       distanceBtn: document.getElementById('distanceBtn'),
+      fxRateBtn: document.getElementById('fxRateBtn'),
       recalcBtn: document.getElementById('recalcBtn'),
       transportBody: document.getElementById('transportBody'),
       lodgingBody: document.getElementById('lodgingBody'),
@@ -1294,12 +1295,40 @@ td select {
       return d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
     }
 
+    function buildUfJRatePageUrl(dateStr) {
+      const date = toDate(dateStr);
+      if (!date) return '';
+      const y = String(date.getFullYear()).slice(2);
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `https://www.murc-kawasesouba.jp/fx/past/index.php?id=${y}${m}${d}`;
+    }
+
     function openUfJReferencePage(url) {
-      return;
+      if (!url) return;
+      try {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } catch (e) {
+        window.open(url, '_blank');
+      }
     }
 
     function prepareUfJReferenceWindow() {
       return;
+    }
+
+    function openDepartDateFxPage() {
+      const dateStr = els.departDate.value;
+      if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        alert('出発日を選択してください。');
+        return;
+      }
+      const url = buildUfJRatePageUrl(dateStr);
+      if (!url) {
+        alert('出発日を選択してください。');
+        return;
+      }
+      openUfJReferencePage(url);
     }
 
 
@@ -1558,11 +1587,7 @@ td select {
 
       setFxFetchStatus('為替取得中...');
 
-      const y = String(date.getFullYear()).slice(2);
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      const murcId = `${y}${m}${d}`;
-      const pageUrl = `https://www.murc-kawasesouba.jp/fx/past/index.php?id=${murcId}`;
+      const pageUrl = buildUfJRatePageUrl(dateStr);
 
       try {
         const text = await fetchTextWithFallback(pageUrl);
@@ -1572,7 +1597,6 @@ td select {
           updateFieldBackgrounds();
           persistDraft(false);
           setFxFetchStatus('');
-          openUfJReferencePage(pageUrl);
           return;
         }
       } catch (e) {
@@ -1591,7 +1615,6 @@ td select {
             updateFieldBackgrounds();
             persistDraft(false);
             setFxFetchStatus('');
-            openUfJReferencePage('https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html');
             return;
           }
           if (numeric.length === 1) {
@@ -1599,7 +1622,6 @@ td select {
             updateFieldBackgrounds();
             persistDraft(false);
             setFxFetchStatus('');
-            openUfJReferencePage('https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html');
             return;
           }
         }
@@ -1690,8 +1712,14 @@ td select {
       if (els.distanceWrap) {
         els.distanceWrap.classList.toggle('hidden', overseas);
       }
+      if (els.distanceBtn) {
+        els.distanceBtn.classList.toggle('hidden', overseas);
+      }
+      if (els.fxRateBtn) {
+        els.fxRateBtn.classList.toggle('hidden', !overseas);
+      }
       if (els.distanceBtnWrap) {
-        els.distanceBtnWrap.classList.toggle('hidden', overseas);
+        els.distanceBtnWrap.classList.toggle('hidden', false);
       }
       if (overseas) {
         els.distanceKm.value = '';
@@ -2410,6 +2438,9 @@ td select {
         calculateAll();
       });
       els.distanceBtn.addEventListener('click', calculateDistance);
+      if (els.fxRateBtn) {
+        els.fxRateBtn.addEventListener('click', openDepartDateFxPage);
+      }
 
       attachSuggestionBehavior(els.destination, els.destinationSuggestions, COUNTRY_OPTIONS, value => {
         if (els.tripType.value !== 'overseas') {
