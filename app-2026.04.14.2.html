@@ -632,6 +632,10 @@ td select {
       gap: 12px;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       margin-top: 12px;
+      align-items: end;
+    }
+    .fx-grid .field {
+      min-width: 0;
     }
     .fx-pair {
       display: grid;
@@ -647,10 +651,7 @@ td select {
     .fx-code.readonly-code {
       background: #eef5ff;
     }
-    .fx-hidden-label {
-      visibility: hidden;
-    }
-    @media (max-width: 900px) {
+@media (max-width: 900px) {
       .fx-grid {
         grid-template-columns: 1fr;
       }
@@ -729,7 +730,7 @@ td select {
           <h2>基本情報</h2>
           <div class="section-sub">出張種類、日数、距離、日当条件をここで管理します。</div>
         </div>
-        <div class="inline">
+        <div class="inline" id="distanceBtnWrap">
                     <button class="btn btn-secondary" id="distanceBtn" type="button">銀座から距離計算</button>
           
         </div>
@@ -803,7 +804,7 @@ td select {
             <label><input id="amArrive" type="checkbox" /> 午前着</label>
           </div>
         </div>
-        <div class="field">
+        <div class="field" id="distanceWrap">
           <label for="distanceKm">銀座からの距離 (km)</label>
           <input id="distanceKm" class="center" type="number" placeholder="自動計算または手入力" min="0" step="0.1" />
         </div>
@@ -832,7 +833,7 @@ td select {
           </div>
         </div>
         <div class="field">
-          <label for="manualCurrencyCode" class="fx-hidden-label">為替 3</label>
+          <label for="manualCurrencyCode">為替 3</label>
           <div class="fx-pair">
             <input id="manualCurrencyCode" type="text" class="fx-code" placeholder="通貨" />
             <input id="manualRate" type="text" inputmode="decimal" placeholder="" />
@@ -1136,6 +1137,7 @@ td select {
       transport: [],
       lodging: [],
       other: [],
+      ufjRefWindow: null,
     };
 
     const els = {
@@ -1162,6 +1164,8 @@ td select {
       pmDepart: document.getElementById('pmDepart'),
       amArrive: document.getElementById('amArrive'),
       distanceKm: document.getElementById('distanceKm'),
+      distanceWrap: document.getElementById('distanceWrap'),
+      distanceBtnWrap: document.getElementById('distanceBtnWrap'),
       judgeText: document.getElementById('judgeText'),
       tripDaysText: document.getElementById('tripDaysText'),
       holidayWorkText: document.getElementById('holidayWorkText'),
@@ -1222,6 +1226,15 @@ td select {
       const d = toDate(dateStr);
       return d ? `${d.getMonth() + 1}/${d.getDate()}` : '';
     }
+
+    function openUfJReferencePage(url) {
+      return;
+    }
+
+    function prepareUfJReferenceWindow() {
+      return;
+    }
+
 
     function setupDatePlaceholderField(el, placeholder = '例）yyyy/mm/dd') {
       if (!el) return;
@@ -1475,6 +1488,7 @@ td select {
           updateFieldBackgrounds();
           persistDraft(false);
           setFxFetchStatus('');
+          openUfJReferencePage(pageUrl);
           return;
         }
       } catch (e) {
@@ -1493,6 +1507,7 @@ td select {
             updateFieldBackgrounds();
             persistDraft(false);
             setFxFetchStatus('');
+            openUfJReferencePage('https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html');
             return;
           }
           if (numeric.length === 1) {
@@ -1500,6 +1515,7 @@ td select {
             updateFieldBackgrounds();
             persistDraft(false);
             setFxFetchStatus('');
+            openUfJReferencePage('https://www.bk.mufg.jp/ippan/kinri/list_j/kinri/kawase.html');
             return;
           }
         }
@@ -1507,6 +1523,7 @@ td select {
         console.warn('当日相場の取得に失敗', e);
       }
 
+      if (state.ufjRefWindow && !state.ufjRefWindow.closed) { try { state.ufjRefWindow.close(); } catch(e) {} state.ufjRefWindow = null; }
       setFxFetchStatus('為替取得失敗');
       setTimeout(() => setFxFetchStatus(''), 2500);
     }
@@ -1560,6 +1577,15 @@ td select {
       const normal = els.tripType.value === 'normal';
       const overseas = els.tripType.value === 'overseas';
       const overnightLike = normal || overseas;
+      if (els.distanceWrap) {
+        els.distanceWrap.classList.toggle('hidden', overseas);
+      }
+      if (els.distanceBtnWrap) {
+        els.distanceBtnWrap.classList.toggle('hidden', overseas);
+      }
+      if (overseas) {
+        els.distanceKm.value = '';
+      }
       els.returnDateWrap.classList.toggle('hidden', !overnightLike);
       els.lodgingSection.classList.toggle('hidden', !overnightLike);
       const allowanceRow = document.querySelector('.allowance-row');
@@ -2100,6 +2126,7 @@ td select {
             if (key === 'departDate' && els.tripType.value === 'overseas') {
               els.usdJpyRate.value = '';
               if (/^\d{4}-\d{2}-\d{2}$/.test(els.departDate.value)) {
+                prepareUfJReferenceWindow();
                 await fetchUsdJpyTtm(els.departDate.value);
               }
             }
@@ -2133,6 +2160,7 @@ td select {
             await prepareHolidayData();
             if (key === 'departDate' && els.tripType.value === 'overseas') {
               if (els.departDate.value) {
+                prepareUfJReferenceWindow();
                 await fetchUsdJpyTtm(els.departDate.value);
               } else {
                 els.usdJpyRate.value = '';
