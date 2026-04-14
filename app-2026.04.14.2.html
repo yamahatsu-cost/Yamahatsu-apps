@@ -626,6 +626,86 @@ td select {
   border-color: #ffffff;
 }
 
+
+    .fx-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 12px;
+    }
+    .fx-pair {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 1fr);
+      gap: 8px;
+      align-items: end;
+    }
+    .fx-code {
+      text-align: center !important;
+      font-weight: 700;
+      min-width: 0;
+    }
+    .fx-code.readonly-code {
+      background: #eef5ff;
+    }
+    .fx-hidden-label {
+      visibility: hidden;
+    }
+    @media (max-width: 900px) {
+      .fx-grid {
+        grid-template-columns: 1fr;
+      }
+      .fx-pair {
+        grid-template-columns: 88px minmax(0, 1fr);
+      }
+    }
+
+
+    .field { position: relative; }
+
+    .suggestion-box {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 30;
+      background: #fff;
+      border: 1px solid #cfd8e6;
+      border-radius: 12px;
+      box-shadow: 0 10px 24px rgba(13, 33, 66, 0.14);
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+
+    .fx-pair { position: relative; }
+
+    .fx-pair .suggestion-box {
+      top: calc(100% + 4px);
+      left: 0;
+      right: auto;
+      width: 110px;
+    }
+
+    .suggestion-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.35;
+      background: #fff;
+    }
+
+    .suggestion-item:hover,
+    .suggestion-item.active {
+      background: #eef5ff;
+    }
+
+    .fx-status {
+      color: #c62828;
+      font-weight: 700;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
 </style>
 </head>
 <body>
@@ -684,9 +764,26 @@ td select {
             <option value="一般社員">一般社員</option>
           </select>
         </div>
-        <div class="field">
-          <label for="destination">出張先</label>
-          <input id="destination" type="text" placeholder="例）大阪市中央区" />
+        <div class="field" id="destinationWrap">
+          <label for="destination" id="destinationLabel">出張先</label>
+          <input id="destination" type="text" placeholder="例）大阪市中央区" autocomplete="off" />
+          <div id="destinationSuggestions" class="suggestion-box hidden"></div>
+          <datalist id="countryOptions">
+            <option value="中華民国（台湾）"></option>
+            <option value="ベトナム"></option>
+            <option value="タイ"></option>
+            <option value="マレーシア"></option>
+            <option value="インドネシア"></option>
+            <option value="中華人民共和国（中国）"></option>
+            <option value="フィリピン"></option>
+            <option value="カンボジア"></option>
+            <option value="ラオス"></option>
+            <option value="インド"></option>
+            <option value="アメリカ"></option>
+            <option value="オーストラリア"></option>
+            <option value="ニュージーランド"></option>
+            <option value="パプアニューギニア"></option>
+          </datalist>
         </div>
       </div>
 
@@ -709,6 +806,58 @@ td select {
         <div class="field">
           <label for="distanceKm">銀座からの距離 (km)</label>
           <input id="distanceKm" class="center" type="number" placeholder="自動計算または手入力" min="0" step="0.1" />
+        </div>
+      </div>
+
+      <div class="grid grid-4 hidden" id="overseasExtraRow" style="margin-top:12px;">
+        <div class="field">
+          <label for="regionInput">地区</label>
+          <input id="regionInput" type="text" placeholder="例）B地区" />
+        </div>
+      </div>
+
+      <div class="fx-grid hidden" id="fxSection">
+        <div class="field">
+          <label for="usdJpyRate">為替 1 <span id="fxFetchStatus" class="fx-status hidden"></span></label>
+          <div class="fx-pair">
+            <input id="usdCode" type="text" class="fx-code readonly-code" value="USD" readonly />
+            <input id="usdJpyRate" type="text" inputmode="decimal" placeholder="出発日のUFJ仲値" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="localRate">為替 2</label>
+          <div class="fx-pair">
+            <input id="localCurrencyCode" type="text" class="fx-code readonly-code" value="" readonly placeholder="通貨" />
+            <input id="localRate" type="text" inputmode="decimal" placeholder="" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="manualCurrencyCode" class="fx-hidden-label">為替 3</label>
+          <div class="fx-pair">
+            <input id="manualCurrencyCode" type="text" class="fx-code" placeholder="通貨" />
+            <input id="manualRate" type="text" inputmode="decimal" placeholder="" />
+          </div>
+          <div id="manualCurrencySuggestions" class="suggestion-box hidden"></div>
+          <datalist id="currencyCodeOptions">
+            <option value="USD"></option>
+            <option value="TWD"></option>
+            <option value="VND"></option>
+            <option value="THB"></option>
+            <option value="MYR"></option>
+            <option value="IDR"></option>
+            <option value="CNY"></option>
+            <option value="PHP"></option>
+            <option value="KHR"></option>
+            <option value="LAK"></option>
+            <option value="INR"></option>
+            <option value="AUD"></option>
+            <option value="NZD"></option>
+            <option value="PGK"></option>
+            <option value="EUR"></option>
+            <option value="GBP"></option>
+            <option value="HKD"></option>
+            <option value="CAD"></option>
+          </datalist>
         </div>
       </div>
 
@@ -917,7 +1066,7 @@ td select {
   </div>
 
   <script>
-    const APP_VERSION = '2026.04.14.2';
+    const APP_VERSION = '2026.04.14.3';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const DISMISSED_KEY = 'dismissed_version';
     const HOTEL_KEY = 'trip-expense-hotel-history-v1';
@@ -934,6 +1083,54 @@ td select {
       '一般社員': 3500,
     };
 
+
+    const COUNTRY_TO_REGION = {
+      '中華民国（台湾）': 'B地区',
+      'ベトナム': 'B地区',
+      'タイ': 'B地区',
+      'マレーシア': 'B地区',
+      'インドネシア': 'B地区',
+      '中華人民共和国（中国）': 'B地区',
+      'フィリピン': 'B地区',
+      'カンボジア': 'B地区',
+      'ラオス': 'B地区',
+      'インド': 'B地区',
+      'アメリカ': 'A地区',
+      'オーストラリア': 'B地区',
+      'ニュージーランド': 'B地区',
+      'パプアニューギニア': 'B地区',
+      'カナダ': 'A地区',
+      '香港': 'B地区'
+    };
+
+    const COUNTRY_TO_CURRENCY = {
+      '中華民国（台湾）': 'TWD',
+      'ベトナム': 'VND',
+      'タイ': 'THB',
+      'マレーシア': 'MYR',
+      'インドネシア': 'IDR',
+      '中華人民共和国（中国）': 'CNY',
+      'フィリピン': 'PHP',
+      'カンボジア': 'KHR',
+      'ラオス': 'LAK',
+      'インド': 'INR',
+      'アメリカ': 'USD',
+      'オーストラリア': 'AUD',
+      'ニュージーランド': 'NZD',
+      'パプアニューギニア': 'PGK'
+    };
+
+    const COUNTRY_OPTIONS = [
+      '中華民国（台湾）', 'ベトナム', 'タイ', 'マレーシア', 'インドネシア',
+      '中華人民共和国（中国）', 'フィリピン', 'カンボジア', 'ラオス', 'インド',
+      'アメリカ', 'オーストラリア', 'ニュージーランド', 'パプアニューギニア'
+    ];
+
+    const CURRENCY_CODE_OPTIONS = [
+      'USD', 'TWD', 'VND', 'THB', 'MYR', 'IDR', 'CNY', 'PHP', 'KHR',
+      'LAK', 'INR', 'AUD', 'NZD', 'PGK', 'EUR', 'GBP', 'HKD', 'CAD'
+    ];
+
     const state = {
       holidays: {},
       transport: [],
@@ -946,6 +1143,19 @@ td select {
       fullName: document.getElementById('fullName'),
       position: document.getElementById('position'),
       destination: document.getElementById('destination'),
+      destinationLabel: document.getElementById('destinationLabel'),
+      destinationSuggestions: document.getElementById('destinationSuggestions'),
+      overseasExtraRow: document.getElementById('overseasExtraRow'),
+      regionInput: document.getElementById('regionInput'),
+      fxSection: document.getElementById('fxSection'),
+      usdCode: document.getElementById('usdCode'),
+      usdJpyRate: document.getElementById('usdJpyRate'),
+      fxFetchStatus: document.getElementById('fxFetchStatus'),
+      localCurrencyCode: document.getElementById('localCurrencyCode'),
+      localRate: document.getElementById('localRate'),
+      manualCurrencyCode: document.getElementById('manualCurrencyCode'),
+      manualCurrencySuggestions: document.getElementById('manualCurrencySuggestions'),
+      manualRate: document.getElementById('manualRate'),
       departDate: document.getElementById('departDate'),
       returnDate: document.getElementById('returnDate'),
       returnDateWrap: document.getElementById('returnDateWrap'),
@@ -1104,6 +1314,236 @@ td select {
       }
     }
 
+
+    function sanitizeNumericText(value) {
+      return String(value ?? '').replace(/[^0-9.\-]/g, '');
+    }
+
+    function getAutoRegion(country) {
+      return COUNTRY_TO_REGION[country] || '';
+    }
+
+    function getAutoCurrency(country) {
+      return COUNTRY_TO_CURRENCY[country] || '';
+    }
+
+
+    function buildSuggestions(container, items, onPick) {
+      if (!container) return;
+      container.innerHTML = items.map(item => `<div class="suggestion-item" data-value="${item}">${item}</div>`).join('');
+      container.classList.toggle('hidden', items.length === 0);
+      container.querySelectorAll('.suggestion-item').forEach(node => {
+        node.addEventListener('mousedown', e => {
+          e.preventDefault();
+          const value = node.dataset.value || '';
+          onPick(value);
+          container.classList.add('hidden');
+        });
+      });
+    }
+
+    function filterSuggestionItems(sourceItems, keyword = '', { showAllOnExactMatch = false } = {}) {
+      const trimmed = String(keyword || '').trim();
+      if (!trimmed) return sourceItems.slice();
+      if (showAllOnExactMatch && sourceItems.includes(trimmed)) return sourceItems.slice();
+      const lower = trimmed.toLowerCase();
+      const starts = sourceItems.filter(item => item.toLowerCase().startsWith(lower));
+      const includes = sourceItems.filter(item => !starts.includes(item) && item.toLowerCase().includes(lower));
+      return [...starts, ...includes];
+    }
+
+    function attachSuggestionBehavior(inputEl, boxEl, sourceItems, onPick) {
+      if (!inputEl || !boxEl) return;
+      let blurTimer = null;
+
+      const render = (showAll = false) => {
+        const items = showAll
+          ? sourceItems.slice()
+          : filterSuggestionItems(sourceItems, inputEl.value, { showAllOnExactMatch: true });
+        buildSuggestions(boxEl, items, value => {
+          inputEl.value = value;
+          onPick(value);
+          updateFieldBackgrounds();
+          persistDraft(false);
+        });
+      };
+
+      inputEl.addEventListener('focus', () => {
+        clearTimeout(blurTimer);
+        render(true);
+      });
+
+      inputEl.addEventListener('click', () => {
+        clearTimeout(blurTimer);
+        render(true);
+      });
+
+      inputEl.addEventListener('input', () => {
+        clearTimeout(blurTimer);
+        render(false);
+      });
+
+      inputEl.addEventListener('blur', () => {
+        blurTimer = setTimeout(() => boxEl.classList.add('hidden'), 180);
+      });
+    }
+
+    function setFxFetchStatus(message = '') {
+      if (!els.fxFetchStatus) return;
+      els.fxFetchStatus.textContent = message;
+      els.fxFetchStatus.classList.toggle('hidden', !message);
+    }
+
+    async function fetchTextWithFallback(url) {
+      const targets = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://r.jina.ai/http://${url.replace(/^https?:\/\//, '')}`,
+        url,
+      ];
+      let lastError = null;
+      for (const target of targets) {
+        try {
+          const res = await fetch(target, { cache: 'no-store' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return await res.text();
+        } catch (e) {
+          lastError = e;
+        }
+      }
+      throw lastError || new Error('fetch failed');
+    }
+
+    function extractUsdRateFromText(text) {
+      if (!text) return '';
+      const compact = String(text)
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/[\t\r\n]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const directPatterns = [
+        /US Dollar\s*,\s*米ドル\s*,\s*USD\s*,\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)/i,
+        /米ドル\s*,\s*USD\s*,\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)/i,
+        /US Dollar[\s\S]{0,80}?USD[\s\S]{0,40}?(\d+\.\d+)[^\d]+(\d+\.\d+)/i,
+        /米ドル[\s\S]{0,80}?USD[\s\S]{0,40}?(\d+\.\d+)[^\d]+(\d+\.\d+)/i
+      ];
+
+      for (const pattern of directPatterns) {
+        const match = compact.match(pattern);
+        if (match && match[1] && match[2]) {
+          const a = Number(match[1]);
+          const b = Number(match[2]);
+          if (Number.isFinite(a) && Number.isFinite(b)) {
+            return ((a + b) / 2).toFixed(2);
+          }
+        }
+      }
+
+      const rowMatch = compact.match(/(?:US Dollar|米ドル)[\s\S]{0,160}/i);
+      if (rowMatch && rowMatch[0]) {
+        const nums = (rowMatch[0].match(/\d+\.\d+/g) || [])
+          .map(Number)
+          .filter(v => Number.isFinite(v) && v > 100 && v < 250);
+        if (nums.length >= 2) {
+          return ((Math.max(...nums) + Math.min(...nums)) / 2).toFixed(2);
+        }
+      }
+
+      return '';
+    }
+
+    async function fetchUsdJpyTtm(dateStr) {
+      els.usdJpyRate.value = '';
+      setFxFetchStatus('');
+      if (!dateStr || els.tripType.value !== 'overseas') return;
+      const date = toDate(dateStr);
+      if (!date) return;
+
+      setFxFetchStatus('為替取得中...');
+
+      const y = String(date.getFullYear()).slice(2);
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const murcId = `${y}${m}${d}`;
+      const pageUrl = `https://www.murc-kawasesouba.jp/fx/past/index.php?id=${murcId}`;
+
+      try {
+        const text = await fetchTextWithFallback(pageUrl);
+        const rate = extractUsdRateFromText(text);
+        if (rate) {
+          els.usdJpyRate.value = rate;
+          updateFieldBackgrounds();
+          persistDraft(false);
+          setFxFetchStatus('');
+          return;
+        }
+      } catch (e) {
+        console.warn('過去相場の取得に失敗', e);
+      }
+
+      try {
+        const csvText = await fetchTextWithFallback('https://www.bk.mufg.jp/gdocs/kinri/list_j/kinri/spot_rate.csv');
+        const line = csvText.split(/\r?\n/).find(v => /(?:^|,)(?:USD|米ドル)(?:,|$)/i.test(v) || /US Dollar|米ドル/i.test(v));
+        if (line) {
+          const parts = line.split(',').map(v => v.trim());
+          const numeric = parts.filter(v => /^-?\d+(\.\d+)?$/.test(v)).map(Number);
+          if (numeric.length >= 2) {
+            const rate = ((Math.max(...numeric) + Math.min(...numeric)) / 2).toFixed(2);
+            els.usdJpyRate.value = rate;
+            updateFieldBackgrounds();
+            persistDraft(false);
+            setFxFetchStatus('');
+            return;
+          }
+          if (numeric.length === 1) {
+            els.usdJpyRate.value = numeric[0].toFixed(2);
+            updateFieldBackgrounds();
+            persistDraft(false);
+            setFxFetchStatus('');
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('当日相場の取得に失敗', e);
+      }
+
+      setFxFetchStatus('為替取得失敗');
+      setTimeout(() => setFxFetchStatus(''), 2500);
+    }
+
+    function updateOverseasFields({ autoFill = true } = {}) {
+      const overseas = els.tripType.value === 'overseas';
+      els.destinationLabel.textContent = overseas ? '国名' : '出張先';
+      els.destination.placeholder = overseas ? '例）ベトナム' : '例）大阪市中央区';
+
+      els.overseasExtraRow.classList.toggle('hidden', !overseas);
+      els.fxSection.classList.toggle('hidden', !overseas);
+
+      if (overseas) {
+        const country = els.destination.value.trim();
+        const autoRegion = getAutoRegion(country);
+        const autoCurrency = getAutoCurrency(country);
+        if (autoFill) {
+          if (autoRegion && (!els.regionInput.value || els.regionInput.dataset.autoFilled === '1')) {
+            els.regionInput.value = autoRegion;
+            els.regionInput.dataset.autoFilled = '1';
+          }
+          els.localCurrencyCode.value = autoCurrency;
+        } else if (autoCurrency) {
+          els.localCurrencyCode.value = autoCurrency;
+        } else if (!country) {
+          els.localCurrencyCode.value = '';
+        }
+      } else {
+        els.regionInput.value = '';
+        els.regionInput.dataset.autoFilled = '0';
+        els.usdJpyRate.value = '';
+        els.localCurrencyCode.value = '';
+        els.localRate.value = '';
+      }
+      updateFieldBackgrounds();
+    }
+
     function getRecommendedTripType() {
       const depart = toDate(els.departDate.value);
       const ret = toDate(els.returnDate.value || els.departDate.value);
@@ -1136,6 +1576,7 @@ td select {
           els.amArrive.checked = false;
         }
       }
+      updateOverseasFields({ autoFill: true });
       if (typeof refreshDatePlaceholderFields === 'function') {
         setTimeout(refreshDatePlaceholderFields, 0);
       }
@@ -1457,6 +1898,12 @@ td select {
           distanceKm: els.distanceKm.value,
           allowanceNote: els.allowanceNote.value,
           advancePayment: els.advancePayment.value,
+          regionInput: els.regionInput.value,
+          usdJpyRate: els.usdJpyRate.value,
+          localCurrencyCode: els.localCurrencyCode.value,
+          localRate: els.localRate.value,
+          manualCurrencyCode: els.manualCurrencyCode.value,
+          manualRate: els.manualRate.value,
         },
         rows: {
           transport: state.transport,
@@ -1497,6 +1944,12 @@ td select {
         els.distanceKm.value = f.distanceKm || '';
         els.allowanceNote.value = f.allowanceNote || '';
         els.advancePayment.value = f.advancePayment || '';
+        els.regionInput.value = f.regionInput || '';
+        els.usdJpyRate.value = f.usdJpyRate || '';
+        els.localCurrencyCode.value = f.localCurrencyCode || '';
+        els.localRate.value = f.localRate || '';
+        els.manualCurrencyCode.value = f.manualCurrencyCode || '';
+        els.manualRate.value = f.manualRate || '';
         state.transport = saved.rows?.transport || [];
         state.lodging = saved.rows?.lodging || [];
         state.other = saved.rows?.other || [];
@@ -1589,7 +2042,7 @@ td select {
       const basicRequired = [
         { el: els.fullName, name: '氏名' },
         { el: els.position, name: '役職' },
-        { el: els.destination, name: '出張先' },
+        { el: els.destination, name: els.tripType.value === 'overseas' ? '国名' : '出張先' },
         { el: els.departDate, name: '出発日' }
       ];
       const overnightLike = els.tripType.value === 'normal' || els.tripType.value === 'overseas';
@@ -1634,12 +2087,22 @@ td select {
         btn.addEventListener('click', () => sortRows(btn.dataset.sort));
       });
 
-      ['tripType', 'position', 'destination', 'departDate', 'returnDate', 'distanceKm'].forEach(key => {
+      ['tripType', 'position', 'destination', 'departDate', 'returnDate', 'distanceKm', 'regionInput', 'usdJpyRate', 'localCurrencyCode', 'localRate', 'manualCurrencyCode', 'manualRate'].forEach(key => {
         els[key].addEventListener('input', async () => {
           if (key === 'destination') {
             els.distanceKm.value = '';
+            updateOverseasFields({ autoFill: true });
+          }
+          if (key === 'regionInput') {
+            els.regionInput.dataset.autoFilled = '0';
           }
           if (key === 'departDate' || key === 'returnDate') {
+            if (key === 'departDate' && els.tripType.value === 'overseas') {
+              els.usdJpyRate.value = '';
+              if (/^\d{4}-\d{2}-\d{2}$/.test(els.departDate.value)) {
+                await fetchUsdJpyTtm(els.departDate.value);
+              }
+            }
             if (key === 'departDate' && els.tripType.value !== 'normal' && els.tripType.value !== 'overseas') {
               els.returnDate.value = els.departDate.value || '';
             }
@@ -1651,6 +2114,10 @@ td select {
         els[key].addEventListener('change', async () => {
           if (key === 'destination') {
             els.distanceKm.value = '';
+            updateOverseasFields({ autoFill: true });
+          }
+          if (key === 'regionInput') {
+            els.regionInput.dataset.autoFilled = '0';
           }
           if (key === 'departDate' || key === 'returnDate') {
             if (key === 'returnDate' && !validateReturnDateOrder(true)) {
@@ -1664,6 +2131,16 @@ td select {
             }
             updateDateSelectors();
             await prepareHolidayData();
+            if (key === 'departDate' && els.tripType.value === 'overseas') {
+              if (els.departDate.value) {
+                await fetchUsdJpyTtm(els.departDate.value);
+              } else {
+                els.usdJpyRate.value = '';
+              }
+            }
+          }
+          if (key === 'tripType') {
+            updateOverseasFields({ autoFill: true });
           }
           calculateAll();
         });
@@ -1678,7 +2155,7 @@ td select {
         calculateAll();
       });
 
-      [els.fullName, els.allowanceNote].forEach(el => {
+      [els.fullName, els.allowanceNote, els.regionInput, els.usdJpyRate, els.localCurrencyCode, els.localRate, els.manualCurrencyCode, els.manualRate].forEach(el => {
         el.addEventListener('input', () => persistDraft(false));
       });
 
@@ -1695,6 +2172,24 @@ td select {
         calculateAll();
       });
       els.distanceBtn.addEventListener('click', calculateDistance);
+
+      attachSuggestionBehavior(els.destination, els.destinationSuggestions, COUNTRY_OPTIONS, value => {
+        if (els.tripType.value === 'overseas') {
+          const autoRegion = getAutoRegion(value);
+          const autoCurrency = getAutoCurrency(value);
+          if (autoRegion) {
+            els.regionInput.value = autoRegion;
+            els.regionInput.dataset.autoFilled = '1';
+          }
+          els.localCurrencyCode.value = autoCurrency;
+        }
+        calculateAll();
+      });
+
+      attachSuggestionBehavior(els.manualCurrencyCode, els.manualCurrencySuggestions, CURRENCY_CODE_OPTIONS, () => {
+        calculateAll();
+      });
+
       
       els.headerSaveBtn.addEventListener('click', () => persistDraft(true));
       els.headerResetBtn.addEventListener('click', resetAll);
@@ -1723,6 +2218,7 @@ td select {
       await prepareHolidayData();
       updateDateSelectors();
       refreshDatePlaceholderFields();
+      updateOverseasFields({ autoFill: true, fetchRate: !!els.departDate.value && els.tripType.value === 'overseas' });
       calculateAll();
       updateFieldBackgrounds();
       checkForUpdate();
