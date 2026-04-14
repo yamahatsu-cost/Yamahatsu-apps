@@ -919,6 +919,7 @@ td select {
   <script>
     const APP_VERSION = '2026.04.14.2';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
+    const DISMISSED_KEY = 'dismissed_version';
     const HOTEL_KEY = 'trip-expense-hotel-history-v1';
     const GINZA_COORDS = { lat: 35.6717, lon: 139.7650 };
     const ROLE_RATES = {
@@ -1616,7 +1617,8 @@ td select {
         const res = await fetch(`./version.json?ts=${Date.now()}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        if (data.version && data.version !== APP_VERSION) {
+        const dismissed = localStorage.getItem(DISMISSED_KEY);
+        if (data.version && data.version !== APP_VERSION && data.version !== dismissed) {
           els.updatePopup.classList.add('active');
         }
       } catch (e) {
@@ -1697,7 +1699,16 @@ td select {
       els.headerSaveBtn.addEventListener('click', () => persistDraft(true));
       els.headerResetBtn.addEventListener('click', resetAll);
       els.reloadBtn.addEventListener('click', () => location.reload());
-      els.dismissUpdateBtn.addEventListener('click', () => els.updatePopup.classList.remove('active'));
+      els.dismissUpdateBtn.addEventListener('click', async () => {
+        try {
+          const res = await fetch(`./version.json?ts=${Date.now()}`, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.version) localStorage.setItem(DISMISSED_KEY, data.version);
+          }
+        } catch (e) {}
+        els.updatePopup.classList.remove('active');
+      });
     }
 
     async function init() {
