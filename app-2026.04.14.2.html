@@ -707,6 +707,15 @@ td select {
       margin-left: 8px;
     }
 
+
+/* 為替の数値入力だけ中央揃え */
+#usdJpyRate,
+#localRate,
+#manualRate {
+  text-align: center !important;
+  font-variant-numeric: tabular-nums;
+}
+
 </style>
 </head>
 <body>
@@ -1067,7 +1076,7 @@ td select {
   </div>
 
   <script>
-    const APP_VERSION = '2026.04.14.3';
+    const APP_VERSION = '2026.04.14.4';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const DISMISSED_KEY = 'dismissed_version';
     const HOTEL_KEY = 'trip-expense-hotel-history-v1';
@@ -1370,6 +1379,11 @@ td select {
       let blurTimer = null;
 
       const render = (showAll = false) => {
+        if (inputEl === els.destination && els.tripType.value !== 'overseas') {
+          boxEl.classList.add('hidden');
+          boxEl.innerHTML = '';
+          return;
+        }
         const items = showAll
           ? sourceItems.slice()
           : filterSuggestionItems(sourceItems, inputEl.value, { showAllOnExactMatch: true });
@@ -1532,6 +1546,11 @@ td select {
       const overseas = els.tripType.value === 'overseas';
       els.destinationLabel.textContent = overseas ? '国名' : '出張先';
       els.destination.placeholder = overseas ? '例）ベトナム' : '例）大阪市中央区';
+      els.destination.setAttribute('list', overseas ? 'countryOptions' : '');
+      if (!overseas && els.destinationSuggestions) {
+        els.destinationSuggestions.classList.add('hidden');
+        els.destinationSuggestions.innerHTML = '';
+      }
 
       els.overseasExtraRow.classList.toggle('hidden', !overseas);
       els.fxSection.classList.toggle('hidden', !overseas);
@@ -1559,6 +1578,17 @@ td select {
         els.localRate.value = '';
       }
       updateFieldBackgrounds();
+    }
+
+    function handleTripTypeChange() {
+      els.destination.value = '';
+      els.distanceKm.value = '';
+      updateOverseasFields({ autoFill: true });
+
+      if (els.tripType.value !== 'overseas') {
+        els.regionInput.value = '';
+        els.regionInput.dataset.autoFilled = '0';
+      }
     }
 
     function getRecommendedTripType() {
@@ -2168,7 +2198,7 @@ td select {
             }
           }
           if (key === 'tripType') {
-            updateOverseasFields({ autoFill: true });
+            handleTripTypeChange();
           }
           calculateAll();
         });
@@ -2202,15 +2232,19 @@ td select {
       els.distanceBtn.addEventListener('click', calculateDistance);
 
       attachSuggestionBehavior(els.destination, els.destinationSuggestions, COUNTRY_OPTIONS, value => {
-        if (els.tripType.value === 'overseas') {
-          const autoRegion = getAutoRegion(value);
-          const autoCurrency = getAutoCurrency(value);
-          if (autoRegion) {
-            els.regionInput.value = autoRegion;
-            els.regionInput.dataset.autoFilled = '1';
+        if (els.tripType.value !== 'overseas') {
+          if (els.destinationSuggestions) {
+            els.destinationSuggestions.classList.add('hidden');
           }
-          els.localCurrencyCode.value = autoCurrency;
+          return;
         }
+        const autoRegion = getAutoRegion(value);
+        const autoCurrency = getAutoCurrency(value);
+        if (autoRegion) {
+          els.regionInput.value = autoRegion;
+          els.regionInput.dataset.autoFilled = '1';
+        }
+        els.localCurrencyCode.value = autoCurrency;
         calculateAll();
       });
 
