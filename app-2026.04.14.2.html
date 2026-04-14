@@ -716,6 +716,39 @@ td select {
   font-variant-numeric: tabular-nums;
 }
 
+/* 保存データ呼出ダイアログ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.32);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  padding: 16px;
+}
+.modal-backdrop.active {
+  display: flex;
+}
+.modal-card {
+  width: min(520px, 100%);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.modal-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
 </style>
 </head>
 <body>
@@ -727,6 +760,7 @@ td select {
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
+      <button class="header-badge-btn" id="headerLoadBtn" type="button">保存内容を呼出</button>
       <button class="header-badge-btn" id="headerResetBtn" type="button">リセット</button>
       </div>
     </div>
@@ -1066,6 +1100,24 @@ td select {
     <div class="footer-note">この版は入力フォーム・計算ロジック先行版です。次段階でExcelフォーム出力を追加できます。</div>
   </main>
 
+
+  <div class="modal-backdrop" id="savedTripModal">
+    <div class="modal-card">
+      <div class="modal-title">保存内容を呼出</div>
+      <div class="modal-sub">出張先名で保存されたデータを選択してください。</div>
+      <div class="field">
+        <label for="savedTripSelect">保存済みデータ</label>
+        <select id="savedTripSelect">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+      <div class="inline" style="margin-top:14px; justify-content:flex-end;">
+        <button class="btn btn-ghost" id="savedTripCancelBtn" type="button">閉じる</button>
+        <button class="btn btn-primary" id="savedTripApplyBtn" type="button">呼出</button>
+      </div>
+    </div>
+  </div>
+
   <div class="update-popup" id="updatePopup">
     <div style="font-weight:800; margin-bottom:6px;">新しいバージョンがあります</div>
     <div class="small muted" style="margin-bottom:10px;">更新して最新の出張費精算アプリを開いてください。</div>
@@ -1078,6 +1130,7 @@ td select {
   <script>
     const APP_VERSION = '2026.04.14.4';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
+    const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v1';
     const DISMISSED_KEY = 'dismissed_version';
     const HOTEL_KEY = 'trip-expense-hotel-history-v1';
     const GINZA_COORDS = { lat: 35.6717, lon: 139.7650 };
@@ -1203,7 +1256,12 @@ td select {
       grossTotal: document.getElementById('grossTotal'),
       netTotal: document.getElementById('netTotal'),
       headerSaveBtn: document.getElementById('headerSaveBtn'),
+      headerLoadBtn: document.getElementById('headerLoadBtn'),
       resetBtn: document.getElementById('resetBtn'),
+      savedTripModal: document.getElementById('savedTripModal'),
+      savedTripSelect: document.getElementById('savedTripSelect'),
+      savedTripApplyBtn: document.getElementById('savedTripApplyBtn'),
+      savedTripCancelBtn: document.getElementById('savedTripCancelBtn'),
       updatePopup: document.getElementById('updatePopup'),
       reloadBtn: document.getElementById('reloadBtn'),
       dismissUpdateBtn: document.getElementById('dismissUpdateBtn'),
@@ -1397,16 +1455,28 @@ td select {
 
       inputEl.addEventListener('focus', () => {
         clearTimeout(blurTimer);
+        if (inputEl === els.destination && els.tripType.value !== 'overseas') {
+          boxEl.classList.add('hidden');
+          return;
+        }
         render(true);
       });
 
       inputEl.addEventListener('click', () => {
         clearTimeout(blurTimer);
+        if (inputEl === els.destination && els.tripType.value !== 'overseas') {
+          boxEl.classList.add('hidden');
+          return;
+        }
         render(true);
       });
 
       inputEl.addEventListener('input', () => {
         clearTimeout(blurTimer);
+        if (inputEl === els.destination && els.tripType.value !== 'overseas') {
+          boxEl.classList.add('hidden');
+          return;
+        }
         render(false);
       });
 
@@ -1580,16 +1650,26 @@ td select {
       updateFieldBackgrounds();
     }
 
+    
     function handleTripTypeChange() {
+      const overseas = els.tripType.value === 'overseas';
       els.destination.value = '';
-      els.distanceKm.value = '';
-      updateOverseasFields({ autoFill: true });
-
-      if (els.tripType.value !== 'overseas') {
-        els.regionInput.value = '';
-        els.regionInput.dataset.autoFilled = '0';
+      els.destination.placeholder = overseas ? '例）ベトナム' : '例）大阪市中央区';
+      if (els.destinationSuggestions) {
+        els.destinationSuggestions.classList.add('hidden');
       }
+      if (!overseas) {
+        els.regionInput.value = '';
+        els.localCurrencyCode.value = '';
+        els.localRate.value = '';
+        els.usdJpyRate.value = '';
+      }
+      syncTripTypeUI();
+      refreshDatePlaceholderFields();
+      calculateAll();
+      persistDraft(false);
     }
+    
 
     function getRecommendedTripType() {
       const depart = toDate(els.departDate.value);
@@ -1983,38 +2063,138 @@ td select {
       }
     }
 
+    
+    function applyFormState(saved) {
+      if (!saved) return;
+      const f = saved.fields || {};
+      els.tripType.value = f.tripType || 'normal';
+      els.fullName.value = f.fullName || '';
+      els.position.value = f.position || '';
+      els.destination.value = f.destination || '';
+      els.departDate.value = f.departDate || '';
+      els.returnDate.value = f.returnDate || '';
+      els.pmDepart.checked = !!f.pmDepart;
+      els.amArrive.checked = !!f.amArrive;
+      els.distanceKm.value = f.distanceKm || '';
+      els.allowanceNote.value = f.allowanceNote || '';
+      els.advancePayment.value = f.advancePayment || '';
+      els.regionInput.value = f.regionInput || '';
+      els.usdJpyRate.value = f.usdJpyRate || '';
+      els.localCurrencyCode.value = f.localCurrencyCode || '';
+      els.localRate.value = f.localRate || '';
+      els.manualCurrencyCode.value = f.manualCurrencyCode || '';
+      els.manualRate.value = f.manualRate || '';
+      state.transport = Array.isArray(saved.rows?.transport) ? saved.rows.transport : [];
+      state.lodging = Array.isArray(saved.rows?.lodging) ? saved.rows.lodging : [];
+      state.other = Array.isArray(saved.rows?.other) ? saved.rows.other : [];
+      syncTripTypeUI();
+      refreshDatePlaceholderFields();
+      updateDateSelectors();
+    }
+
     function restoreDraft() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       try {
-        const saved = JSON.parse(raw);
-        const f = saved.fields || {};
-        els.tripType.value = f.tripType || 'normal';
-        els.fullName.value = f.fullName || '';
-        els.position.value = f.position || '';
-        els.destination.value = f.destination || '';
-        els.departDate.value = f.departDate || '';
-        els.returnDate.value = f.returnDate || '';
-        els.pmDepart.checked = !!f.pmDepart;
-        els.amArrive.checked = !!f.amArrive;
-        els.distanceKm.value = f.distanceKm || '';
-        els.allowanceNote.value = f.allowanceNote || '';
-        els.advancePayment.value = f.advancePayment || '';
-        els.regionInput.value = f.regionInput || '';
-        els.usdJpyRate.value = f.usdJpyRate || '';
-        els.localCurrencyCode.value = f.localCurrencyCode || '';
-        els.localRate.value = f.localRate || '';
-        els.manualCurrencyCode.value = f.manualCurrencyCode || '';
-        els.manualRate.value = f.manualRate || '';
-        state.transport = saved.rows?.transport || [];
-        state.lodging = saved.rows?.lodging || [];
-        state.other = saved.rows?.other || [];
+        applyFormState(JSON.parse(raw));
       } catch (e) {
         console.warn('保存データの読込失敗', e);
       }
     }
 
+    function getSavedTrips() {
+      try {
+        const raw = localStorage.getItem(SAVED_TRIPS_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function setSavedTrips(data) {
+      localStorage.setItem(SAVED_TRIPS_KEY, JSON.stringify(data || {}));
+    }
+
+    function renderSavedTripOptions() {
+      if (!els.savedTripSelect) return;
+      const savedTrips = getSavedTrips();
+      const names = Object.keys(savedTrips).sort((a, b) => a.localeCompare(b, 'ja'));
+      els.savedTripSelect.innerHTML = '<option value="">選択してください</option>' +
+        names.map(name => `<option value="${name}">${name}</option>`).join('');
+    }
+
+    function saveNamedTrip() {
+      const destinationNameRaw = (els.destination.value || '').trim();
+      const destinationName = destinationNameRaw ? destinationNameRaw + '出張' : '';
+      if (!destinationName) {
+        alert('出張先/国名を入力してから保存してください。');
+        return;
+      }
+
+      persistDraft(false);
+
+      const savedTrips = getSavedTrips();
+      savedTrips[destinationName] = {
+        ...collectFormState(),
+        savedAt: new Date().toISOString()
+      };
+      setSavedTrips(savedTrips);
+      renderSavedTripOptions();
+
+      const hotels = [...new Set(state.lodging.map(r => (r.hotel || '').trim()).filter(Boolean))];
+      if (hotels.length) {
+        const current = JSON.parse(localStorage.getItem(HOTEL_KEY) || '[]');
+        const merged = [...hotels, ...current.filter(v => !hotels.includes(v))].slice(0, 50);
+        localStorage.setItem(HOTEL_KEY, JSON.stringify(merged));
+        renderHotelDatalist();
+      }
+
+      alert(`「${destinationName}」として保存しました。
+同じ出張先名で保存すると上書きされます。`);
+    }
+
+    function openSavedTripModal() {
+      renderSavedTripOptions();
+      const hasAny = els.savedTripSelect && els.savedTripSelect.options.length > 1;
+      if (!hasAny) {
+        alert('保存済みデータがありません。');
+        return;
+      }
+      els.savedTripSelect.value = '';
+      els.savedTripModal.classList.add('active');
+    }
+
+    function closeSavedTripModal() {
+      els.savedTripModal.classList.remove('active');
+    }
+
+    function applySavedTrip() {
+      const name = els.savedTripSelect.value;
+      if (!name) {
+        alert('呼び出す保存データを選択してください。');
+        return;
+      }
+      const savedTrips = getSavedTrips();
+      const data = savedTrips[name];
+      if (!data) {
+        alert('選択した保存データが見つかりません。');
+        renderSavedTripOptions();
+        return;
+      }
+      applyFormState(data);
+      renderRows('transport');
+      renderRows('lodging');
+      renderRows('other');
+      els.advancePayment.value = formatCurrencyInput(els.advancePayment.value);
+      calculateAll();
+      persistDraft(false);
+      closeSavedTripModal();
+      alert(`「${name}」の内容を呼び出しました。`);
+    }
+
     function resetAll() {
+
       if (!confirm('入力内容をリセットします。よろしいですか？')) return;
       localStorage.removeItem(STORAGE_KEY);
       location.reload();
@@ -2253,7 +2433,13 @@ td select {
       });
 
       
-      els.headerSaveBtn.addEventListener('click', () => persistDraft(true));
+      els.headerSaveBtn.addEventListener('click', saveNamedTrip);
+      els.headerLoadBtn.addEventListener('click', openSavedTripModal);
+      els.savedTripApplyBtn.addEventListener('click', applySavedTrip);
+      els.savedTripCancelBtn.addEventListener('click', closeSavedTripModal);
+      els.savedTripModal.addEventListener('click', e => {
+        if (e.target === els.savedTripModal) closeSavedTripModal();
+      });
       els.headerResetBtn.addEventListener('click', resetAll);
       els.reloadBtn.addEventListener('click', () => location.reload());
       els.dismissUpdateBtn.addEventListener('click', async () => {
@@ -2270,6 +2456,7 @@ td select {
 
     async function init() {
       renderHotelDatalist();
+      renderSavedTripOptions();
       restoreDraft();
       els.advancePayment.value = formatCurrencyInput(els.advancePayment.value);
       bindEvents();
