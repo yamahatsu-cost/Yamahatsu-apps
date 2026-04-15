@@ -140,7 +140,7 @@
 
     .allowance-row {
       display: grid;
-      grid-template-columns: 110px 90px 110px 140px minmax(320px, 1fr);
+      grid-template-columns: 110px 110px 110px 140px minmax(320px, 1fr);
       gap: 10px;
       align-items: end;
       overflow-x: auto;
@@ -160,7 +160,7 @@
     }
 
     .allowance-row.daytrip-mode {
-      grid-template-columns: 110px 90px 140px minmax(360px, 1fr);
+      grid-template-columns: 110px 110px 140px minmax(360px, 1fr);
     }
 
     .allowance-row.daytrip-mode #allowanceDaysWrap {
@@ -545,7 +545,7 @@
         grid-template-columns: 1fr;
       }
       .allowance-row {
-        grid-template-columns: 110px 90px 110px 140px minmax(320px, 1fr);
+        grid-template-columns: 110px 110px 110px 140px minmax(320px, 1fr);
       }
       .header-row {
         align-items: flex-start;
@@ -567,7 +567,7 @@
   .grand-total .value { font-size: 18px; }
       .allowance-row {
       display: grid;
-      grid-template-columns: 110px 90px 110px 140px minmax(320px, 1fr);
+      grid-template-columns: 110px 110px 110px 140px minmax(320px, 1fr);
       gap: 10px;
       align-items: end;
       overflow-x: auto;
@@ -913,7 +913,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.14.2</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.14.3</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -2625,6 +2625,9 @@ td select {
     }
 
     function saveNamedTrip() {
+      calculateAll();
+      if (!validateRequiredFields()) return;
+
       const tripSaveName = buildTripSaveName();
       if (!tripSaveName) return;
 
@@ -2816,6 +2819,7 @@ td select {
 
     function validateRequiredFields() {
       const basicRequired = [
+        { el: els.tripType, name: '出張種類' },
         { el: els.fullName, name: '氏名' },
         { el: els.position, name: '役職' },
         { el: els.destination, name: els.tripType.value === 'overseas' ? '国名' : '出張先' },
@@ -2823,10 +2827,13 @@ td select {
       ];
       const overnightLike = els.tripType.value === 'normal' || els.tripType.value === 'overseas';
       if (overnightLike) basicRequired.push({ el: els.returnDate, name: '帰着日' });
+      basicRequired.push({ el: els.allowanceAmount, name: '日当金額' });
+
       for (const item of basicRequired) {
-        if (!item.el.value) {
+        const value = (item.el && item.el.value != null) ? String(item.el.value).trim() : '';
+        if (!value) {
           showToast(`${item.name}は必須入力です。`, 'warn');
-          item.el.focus();
+          if (item.el && typeof item.el.focus === 'function') item.el.focus();
           return false;
         }
       }
