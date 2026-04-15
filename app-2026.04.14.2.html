@@ -2697,9 +2697,54 @@ td select {
     async function resetAll() {
       const ok = await showConfirmToast('入力内容をリセットします。よろしいですか？');
       if (!ok) return;
+
+      const keepTripType = els.tripType.value;
+      const keepFullName = els.fullName.value;
+      const keepPosition = els.position.value;
+
       localStorage.removeItem(STORAGE_KEY);
-      showToast('入力内容をリセットします。', 'info', { duration: 900 });
-      setTimeout(() => location.reload(), 250);
+
+      state.transport = [defaultRow('transport')];
+      state.lodging = [defaultRow('lodging')];
+      state.other = [defaultRow('other')];
+
+      applyFormState({
+        fields: {
+          tripType: keepTripType || 'normal',
+          fullName: keepFullName || '',
+          position: keepPosition || '',
+          destination: '',
+          departDate: '',
+          returnDate: '',
+          pmDepart: false,
+          amArrive: false,
+          distanceKm: '',
+          allowanceNote: '',
+          advancePayment: '',
+          regionInput: '',
+          usdJpyRate: '',
+          localCurrencyCode: '',
+          localRate: '',
+          manualCurrencyCode: '',
+          manualRate: '',
+        },
+        rows: {
+          transport: [defaultRow('transport')],
+          lodging: [defaultRow('lodging')],
+          other: [defaultRow('other')],
+        },
+      });
+
+      renderRows('transport');
+      renderRows('lodging');
+      renderRows('other');
+      els.advancePayment.value = '';
+      syncTripTypeUI();
+      refreshDatePlaceholderFields();
+      updateFieldBackgrounds();
+      calculateAll();
+      persistDraft(false);
+      showToast('入力内容をリセットしました。', 'info', { duration: 900 });
     }
 
     function getHotelHistory() {
