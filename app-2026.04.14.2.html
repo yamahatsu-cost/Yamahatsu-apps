@@ -368,6 +368,106 @@
     td input, td select, td textarea { min-height: 38px; padding: 8px 10px; }
     td textarea { min-height: 38px; }
 
+
+    /* 海外出張時のみ列幅を拡張し、必要に応じて横スクロール */
+    table.overseas-layout {
+      table-layout: fixed;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table.overseas-layout td {
+      padding-left: 6px;
+      padding-right: 6px;
+    }
+
+    table.overseas-layout td input,
+    table.overseas-layout td select,
+    table.overseas-layout td textarea {
+      width: 100%;
+      min-width: 0;
+    }
+
+    table.overseas-layout .table-currency-select {
+      min-width: 0 !important;
+      width: 100% !important;
+      padding-left: 10px;
+      padding-right: 28px;
+    }
+
+    table.overseas-layout .computed-yen-input {
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+
+    #transportTable.overseas-layout {
+      min-width: 1100px;
+    }
+    #transportTable.overseas-layout th:nth-child(1),
+    #transportTable.overseas-layout td:nth-child(1) { width: 96px; }
+    #transportTable.overseas-layout th:nth-child(2),
+    #transportTable.overseas-layout td:nth-child(2) { width: 125px; }
+    #transportTable.overseas-layout th:nth-child(3),
+    #transportTable.overseas-layout td:nth-child(3) { width: 134px; }
+    #transportTable.overseas-layout th:nth-child(4),
+    #transportTable.overseas-layout td:nth-child(4) { width: 134px; }
+    #transportTable.overseas-layout th:nth-child(5),
+    #transportTable.overseas-layout td:nth-child(5) { width: 154px; }
+    #transportTable.overseas-layout th:nth-child(6),
+    #transportTable.overseas-layout td:nth-child(6) { width: 86px; }
+    #transportTable.overseas-layout th:nth-child(7),
+    #transportTable.overseas-layout td:nth-child(7) { width: 154px; }
+    #transportTable.overseas-layout th:nth-child(8),
+    #transportTable.overseas-layout td:nth-child(8) { width: 154px; }
+    #transportTable.overseas-layout th:nth-child(9),
+    #transportTable.overseas-layout td:nth-child(9) { width: 46px; }
+
+    #lodgingTable.overseas-layout {
+      min-width: 1010px;
+    }
+    #lodgingTable.overseas-layout th:nth-child(1),
+    #lodgingTable.overseas-layout td:nth-child(1) { width: 96px; }
+    #lodgingTable.overseas-layout th:nth-child(2),
+    #lodgingTable.overseas-layout td:nth-child(2) { width: 320px; }
+    #lodgingTable.overseas-layout th:nth-child(3),
+    #lodgingTable.overseas-layout td:nth-child(3) { width: 154px; }
+    #lodgingTable.overseas-layout th:nth-child(4),
+    #lodgingTable.overseas-layout td:nth-child(4) { width: 86px; }
+    #lodgingTable.overseas-layout th:nth-child(5),
+    #lodgingTable.overseas-layout td:nth-child(5) { width: 154px; }
+    #lodgingTable.overseas-layout th:nth-child(6),
+    #lodgingTable.overseas-layout td:nth-child(6) { width: 154px; }
+    #lodgingTable.overseas-layout th:nth-child(7),
+    #lodgingTable.overseas-layout td:nth-child(7) { width: 46px; }
+
+    #otherTable.overseas-layout {
+      min-width: 1180px;
+    }
+    #otherTable.overseas-layout th:nth-child(1),
+    #otherTable.overseas-layout td:nth-child(1) { width: 96px; }
+    #otherTable.overseas-layout th:nth-child(2),
+    #otherTable.overseas-layout td:nth-child(2) { width: 125px; }
+    #otherTable.overseas-layout th:nth-child(3),
+    #otherTable.overseas-layout td:nth-child(3) { width: 134px; }
+    #otherTable.overseas-layout th:nth-child(4),
+    #otherTable.overseas-layout td:nth-child(4) { width: 134px; }
+    #otherTable.overseas-layout th:nth-child(5),
+    #otherTable.overseas-layout td:nth-child(5) { width: 74px; }
+    #otherTable.overseas-layout th:nth-child(6),
+    #otherTable.overseas-layout td:nth-child(6) { width: 154px; }
+    #otherTable.overseas-layout th:nth-child(7),
+    #otherTable.overseas-layout td:nth-child(7) { width: 86px; }
+    #otherTable.overseas-layout th:nth-child(8),
+    #otherTable.overseas-layout td:nth-child(8) { width: 154px; }
+    #otherTable.overseas-layout th:nth-child(9),
+    #otherTable.overseas-layout td:nth-child(9) { width: 154px; }
+    #otherTable.overseas-layout th:nth-child(10),
+    #otherTable.overseas-layout td:nth-child(10) { width: 46px; }
+
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -943,7 +1043,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.15.15</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.15.17</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -1125,7 +1225,7 @@ td select {
         </div>
       </div>
       <div class="table-wrap">
-        <table>
+        <table id="transportTable">
           <thead id="transportHead"></thead>
           <tbody id="transportBody"></tbody>
         </table>
@@ -1145,7 +1245,7 @@ td select {
         </div>
       </div>
       <div class="table-wrap">
-        <table>
+        <table id="lodgingTable">
           <thead id="lodgingHead"></thead>
           <tbody id="lodgingBody"></tbody>
         </table>
@@ -1164,7 +1264,7 @@ td select {
         </div>
       </div>
       <div class="table-wrap">
-        <table>
+        <table id="otherTable">
           <thead id="otherHead"></thead>
           <tbody id="otherBody"></tbody>
         </table>
@@ -1289,7 +1389,7 @@ td select {
   </div>
 
   <script>
-    const APP_VERSION = '2026.04.15.12';
+    const APP_VERSION = '2026.04.15.16';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
@@ -1397,6 +1497,9 @@ td select {
       distanceBtn: document.getElementById('distanceBtn'),
       fxRateBtn: document.getElementById('fxRateBtn'),
       recalcBtn: document.getElementById('recalcBtn'),
+      transportTable: document.getElementById('transportTable'),
+      lodgingTable: document.getElementById('lodgingTable'),
+      otherTable: document.getElementById('otherTable'),
       transportHead: document.getElementById('transportHead'),
       lodgingHead: document.getElementById('lodgingHead'),
       otherHead: document.getElementById('otherHead'),
@@ -2268,7 +2371,7 @@ function renderRows(kind) {
             tdSelect(kind, index, 'mode', row.mode, ['', '電車', '新幹線', 'バス', 'タクシー', '飛行機', 'フェリー（船）', 'レンタカー', '駐車代', 'ガソリン代', '高速代', 'チャージ', 'その他']),
             tdInput(kind, index, 'from', row.from, 'text', '例）東京駅'),
             tdInput(kind, index, 'to', row.to, 'text', '例）新大阪駅'),
-            tdInput(kind, index, 'amount', row.amount, 'text', overseas ? '例）2,550.00' : '例）¥14,000', 'right transport-amount-col'),
+            tdInput(kind, index, 'amount', row.amount, 'text', overseas ? '例）2,550.00' : '例）\\14,000', 'right transport-amount-col'),
           );
           if (overseas) {
             tr.append(
@@ -2286,7 +2389,7 @@ function renderRows(kind) {
           tr.append(
             tdDate(kind, index, row.date),
             tdInput(kind, index, 'hotel', row.hotel, 'text', '例）アパホテル心斎橋', '', getHotelHistory()),
-            tdInput(kind, index, 'amount', row.amount, 'text', overseas ? '例）12,000.00' : '例）¥12,000', 'right lodging-amount-col')
+            tdInput(kind, index, 'amount', row.amount, 'text', overseas ? '例）2,550.00' : '例）\\14,000', 'right lodging-amount-col')
           );
           if (overseas) {
             tr.append(
@@ -2307,7 +2410,7 @@ function renderRows(kind) {
             tdInput(kind, index, 'client', row.client, 'text', '例）○○商事株式会社'),
             tdInput(kind, index, 'attendees', row.attendees, 'text', '例）○○社長、当社参加者名'),
             tdInput(kind, index, 'count', row.count, 'number', '例）4', 'center-input other-count-col'),
-            tdInput(kind, index, 'amount', row.amount, 'text', overseas ? '例）8,000.00' : '例）¥8,000', 'right other-amount-col')
+            tdInput(kind, index, 'amount', row.amount, 'text', overseas ? '例）2,550.00' : '例）\\14,000', 'right other-amount-col')
           );
           if (overseas) {
             tr.append(
@@ -2328,7 +2431,16 @@ function renderRows(kind) {
     }
 
 
+    function setOverseasTableLayout() {
+      const overseas = isOverseasTrip();
+      [els.transportTable, els.lodgingTable, els.otherTable].forEach(table => {
+        if (!table) return;
+        table.classList.toggle('overseas-layout', overseas);
+      });
+    }
+
     function updateSectionHeaders() {
+      setOverseasTableLayout();
       const overseas = isOverseasTrip();
       if (els.transportHead) {
         els.transportHead.innerHTML = overseas
@@ -2385,8 +2497,13 @@ function tdSelect(kind, index, key, value, options) {
       select.value = value || '';
       select.required = true;
       if (kind === 'other' && key === 'category') {
-        select.style.width = '88px';
-        select.style.minWidth = '88px';
+        if (isOverseasTrip()) {
+          select.style.width = '100%';
+          select.style.minWidth = '0';
+        } else {
+          select.style.width = '88px';
+          select.style.minWidth = '88px';
+        }
       }
       select.addEventListener('change', e => {
         state[kind][index][key] = e.target.value;
@@ -2441,8 +2558,11 @@ function tdSelect(kind, index, key, value, options) {
         input.type = 'text';
         input.inputMode = 'decimal';
         input.value = value || '';
-        input.placeholder = '例）2,550.00';
-        input.classList.add('amount-input', 'fx-money-input');
+        input.placeholder = placeholder || (isOverseasTrip() ? '例）2,550.00' : '例）\\14,000');
+        input.classList.add('amount-input');
+        if (isOverseasTrip()) {
+          input.classList.add('fx-money-input');
+        }
       }
 
       if (key === 'count') {
@@ -2450,14 +2570,14 @@ function tdSelect(kind, index, key, value, options) {
       }
 
       if (kind === 'other' && key === 'count') {
-        input.style.width = '72px';
-        input.style.minWidth = '72px';
+        input.style.width = isOverseasTrip() ? '100%' : '72px';
+        input.style.minWidth = isOverseasTrip() ? '0' : '72px';
       }
       if (kind === 'other' && key === 'client') {
-        input.style.minWidth = '200px';
+        input.style.minWidth = isOverseasTrip() ? '0' : '200px';
       }
       if (kind === 'other' && key === 'attendees') {
-        input.style.minWidth = window.innerWidth <= 900 ? '220px' : '280px';
+        input.style.minWidth = isOverseasTrip() ? '0' : (window.innerWidth <= 900 ? '220px' : '280px');
       }
       if (datalistId) {
         input.setAttribute('list', datalistId);
