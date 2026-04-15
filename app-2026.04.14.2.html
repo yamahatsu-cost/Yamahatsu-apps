@@ -697,10 +697,36 @@
   .grand-total .value { font-size: 18px; }
       .allowance-row {
       display: grid;
-      grid-template-columns: 110px 110px 110px 140px minmax(320px, 1fr);
+      grid-template-columns: 118px 92px 108px 148px 240px;
       gap: 10px;
       align-items: end;
       overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      min-width: 0;
+      padding-bottom: 4px;
+    }
+      .allowance-row.overseas-mode {
+      grid-template-columns: 118px 92px 108px 148px 148px 220px;
+    }
+      .allowance-row.daytrip-mode {
+      grid-template-columns: 118px 108px 148px 240px;
+    }
+      .allowance-row .field.note-field {
+      min-width: 240px;
+    }
+      #allowanceUnit,
+      #allowanceAmount,
+      #allowanceYen {
+      min-width: 0 !important;
+      width: 100% !important;
+    }
+      #allowanceFactor,
+      #allowanceDays {
+      width: 100% !important;
+      max-width: none;
+      min-width: 0 !important;
     }
     }
   
@@ -821,7 +847,7 @@ td select {
 @media (max-width: 900px) {
   #otherTable {
     table-layout: fixed;
-    min-width: 1020px;
+    min-width: 1080px;
   }
 
   #otherTable th:nth-child(1),
@@ -831,19 +857,19 @@ td select {
   #otherTable td:nth-child(2) { width: 96px; }
 
   #otherTable th:nth-child(3),
-  #otherTable td:nth-child(3) { width: 180px; }
+  #otherTable td:nth-child(3) { width: 190px; }
 
   #otherTable th:nth-child(4),
   #otherTable td:nth-child(4) { width: 240px; }
 
   #otherTable th:nth-child(5),
-  #otherTable td:nth-child(5) { width: 88px; }
+  #otherTable td:nth-child(5) { width: 90px; }
 
   #otherTable th:nth-child(6),
-  #otherTable td:nth-child(6) { width: 132px; }
+  #otherTable td:nth-child(6) { width: 130px; }
 
   #otherTable th:nth-child(7),
-  #otherTable td:nth-child(7) { width: 170px; }
+  #otherTable td:nth-child(7) { width: 190px; }
 
   #otherTable th:nth-child(8),
   #otherTable td:nth-child(8) { width: 46px; }
@@ -858,6 +884,15 @@ td select {
   #otherTable td textarea {
     width: 100% !important;
     min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  #otherTable td:nth-child(3) input,
+  #otherTable td:nth-child(4) input,
+  #otherTable td:nth-child(5) input,
+  #otherTable td:nth-child(6) input,
+  #otherTable td:nth-child(7) input {
+    min-width: 0 !important;
   }
 
   #otherTable td:nth-child(5) input {
@@ -868,38 +903,6 @@ td select {
     text-align: center;
   }
 }
-
-/* ===== スマホ専用：その他テーブル最適化 ===== */
-@media (max-width: 900px) {
-  #otherBody td:nth-child(4) input {
-    min-width: 200px !important; /* 参加者 少し狭く */
-  }
-
-  #otherBody td:nth-child(3) input {
-    min-width: 160px !important; /* 取引先 少し圧縮 */
-  }
-
-  #otherBody td:nth-child(7) input {
-    min-width: 180px !important;
-    width: 100% !important;      /* 備考を広めに確保 */
-  }
-}
-
-
-/* ===== スマホ用：その他の備考幅最適化を維持 ===== */
-@media (max-width: 900px) {
-  #otherBody td:nth-child(4) input {
-    min-width: 200px !important; /* 参加者 少し狭く */
-  }
-  #otherBody td:nth-child(3) input {
-    min-width: 160px !important; /* 取引先 少し圧縮 */
-  }
-  #otherBody td:nth-child(7) input {
-    min-width: 180px !important;
-    width: 100% !important;      /* 備考を広めに確保 */
-  }
-}
-
 
 /* 仮払い金（青背景対応） */
 .grand-total input {
@@ -1097,7 +1100,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.15.18</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.15.20</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -1443,7 +1446,7 @@ td select {
   </div>
 
   <script>
-    const APP_VERSION = '2026.04.15.18';
+    const APP_VERSION = '2026.04.15.20';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
