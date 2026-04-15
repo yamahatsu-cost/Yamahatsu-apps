@@ -1,16 +1,15 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<title>出張費精算アプリ</title>
-<meta content="#0b57d0" name="theme-color"/>
-<link href="favicon.png" rel="icon" type="image/png"/>
-<link href="favicon.ico" rel="shortcut icon"/>
-<link href="apple-touch-icon.png" rel="apple-touch-icon"/>
-<link href="site.webmanifest" rel="manifest"/>
-<style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>出張費精算アプリ</title>
+  <meta name="theme-color" content="#0b57d0" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <style>
     :root {
       --blue: #0b57d0;
       --blue-dark: #0846a8;
@@ -161,7 +160,7 @@
     }
 
     .allowance-row.daytrip-mode {
-      grid-template-columns: 110px 90px 140px minmax(320px, 1fr);
+      grid-template-columns: 110px 90px 140px minmax(360px, 1fr);
     }
 
     .allowance-row.daytrip-mode #allowanceDaysWrap {
@@ -217,9 +216,7 @@
     }
 
     #allowanceFactor,
-    #allowanceDays,
-    #holidayWorkDays,
-    #substituteDays {
+    #allowanceDays {
       text-align: center;
       font-variant-numeric: tabular-nums;
     }
@@ -393,7 +390,7 @@
     }
 
     .summary-grid.metrics-only {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .muted { color: var(--muted); }
@@ -912,355 +909,382 @@ td select {
 </style>
 </head>
 <body>
-<header class="app-header">
-<div class="header-row">
-<div>
-<div class="header-title">出張費精算</div>
-<div class="header-sub">山發日本株式会社　社内アプリ Ver_4.15</div>
-</div>
-<div class="header-actions">
-<button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
-<button class="header-badge-btn" id="headerLoadBtn" type="button">データ呼出</button>
-<button class="header-badge-btn" id="headerResetBtn" type="button">リセット</button>
-</div>
-</div>
-</header>
-<main class="container">
-<section class="card">
-<div class="section-title">
-<div>
-<h2>基本情報</h2>
-<div class="section-sub">出張種類、日数、距離、日当条件をここで管理します。</div>
-</div>
-<div class="inline" id="distanceBtnWrap">
-<button class="btn btn-secondary" id="distanceBtn" type="button">銀座から距離計算</button>
-<button class="btn btn-secondary hidden" id="fxRateBtn" type="button">出発日の為替レート</button>
-</div>
-</div>
-<div class="grid grid-4">
-<div class="field">
-<label for="tripType">出張種類</label>
-<select id="tripType">
-<option value="normal">普通出張</option>
-<option value="longDay">長距離日帰り出張</option>
-<option value="shortDay">近距離日帰り出張</option>
-<option value="overseas">海外出張</option>
-</select>
-</div>
-<div class="field">
-<label for="fullName">氏名</label>
-<input id="fullName" placeholder="例）坂口 健太郎" type="text"/>
-</div>
-<div class="field">
-<label for="position">役職</label>
-<select id="position">
-<option value="">選択してください</option>
-<option value="本部長">本部長</option>
-<option value="副本部長">副本部長</option>
-<option value="部長">部長</option>
-<option value="副部長">副部長</option>
-<option value="課長">課長</option>
-<option value="副課長">副課長</option>
-<option value="係長">係長</option>
-<option value="主任">主任</option>
-<option value="一般社員">一般社員</option>
-</select>
-</div>
-<div class="field" id="destinationWrap">
-<label for="destination" id="destinationLabel">出張先</label>
-<input autocomplete="off" id="destination" placeholder="例）大阪市中央区" type="text"/>
-<div class="suggestion-box hidden" id="destinationSuggestions"></div>
-<datalist id="countryOptions">
-<option value="中華民国（台湾）"></option>
-<option value="ベトナム"></option>
-<option value="タイ"></option>
-<option value="マレーシア"></option>
-<option value="インドネシア"></option>
-<option value="中華人民共和国（中国）"></option>
-<option value="フィリピン"></option>
-<option value="カンボジア"></option>
-<option value="ラオス"></option>
-<option value="インド"></option>
-<option value="アメリカ"></option>
-<option value="オーストラリア"></option>
-<option value="ニュージーランド"></option>
-<option value="パプアニューギニア"></option>
-</datalist>
-</div>
-</div>
-<div class="grid grid-4" style="margin-top:12px;">
-<div class="field">
-<label for="departDate">出発日</label>
-<input class="date-placeholder date-select" id="departDate" inputmode="numeric" placeholder="例）yyyy/mm/dd" type="text"/>
-</div>
-<div class="field" id="returnDateWrap">
-<label for="returnDate">帰着日</label>
-<input class="date-placeholder date-select" id="returnDate" inputmode="numeric" placeholder="例）yyyy/mm/dd" type="text"/>
-</div>
-<div class="field">
-<label>半日条件</label>
-<div class="check-row">
-<label><input id="pmDepart" type="checkbox"/> 午後発</label>
-<label><input id="amArrive" type="checkbox"/> 午前着</label>
-</div>
-</div>
-<div class="field" id="distanceWrap">
-<label for="distanceKm">銀座からの距離 (km)</label>
-<input class="center" id="distanceKm" min="0" placeholder="自動計算または手入力" step="0.1" type="number"/>
-</div>
-</div>
-<div class="grid grid-4 hidden" id="overseasExtraRow" style="margin-top:12px;">
-<div class="field">
-<label for="regionInput">地区</label>
-<input id="regionInput" placeholder="例）B地区" type="text"/>
-</div>
-</div>
-<div class="fx-grid hidden" id="fxSection">
-<div class="field">
-<label for="usdJpyRate">為替 1 <span class="fx-status hidden" id="fxFetchStatus"></span></label>
-<div class="fx-pair">
-<input class="fx-code readonly-code" id="usdCode" readonly="" type="text" value="USD"/>
-<input id="usdJpyRate" inputmode="decimal" placeholder="出発日のUFJ仲値" type="text"/>
-</div>
-</div>
-<div class="field">
-<label for="localRate">為替 2</label>
-<div class="fx-pair">
-<input class="fx-code readonly-code" id="localCurrencyCode" placeholder="通貨" readonly="" type="text" value=""/>
-<input id="localRate" inputmode="decimal" placeholder="" type="text"/>
-</div>
-</div>
-<div class="field">
-<label for="manualCurrencyCode">為替 3</label>
-<div class="fx-pair">
-<input class="fx-code" id="manualCurrencyCode" placeholder="通貨" type="text"/>
-<input id="manualRate" inputmode="decimal" placeholder="" type="text"/>
-</div>
-<div class="suggestion-box hidden" id="manualCurrencySuggestions"></div>
-<datalist id="currencyCodeOptions">
-<option value="USD"></option>
-<option value="TWD"></option>
-<option value="VND"></option>
-<option value="THB"></option>
-<option value="MYR"></option>
-<option value="IDR"></option>
-<option value="CNY"></option>
-<option value="PHP"></option>
-<option value="KHR"></option>
-<option value="LAK"></option>
-<option value="INR"></option>
-<option value="AUD"></option>
-<option value="NZD"></option>
-<option value="PGK"></option>
-<option value="EUR"></option>
-<option value="GBP"></option>
-<option value="HKD"></option>
-<option value="CAD"></option>
-</datalist>
-</div>
-</div>
-<div class="summary-grid metrics-only" style="margin-top:14px;">
-<div class="summary-box">
-<div class="label">出張日数</div>
-<div class="value metric-value" id="tripDaysText">0.0日</div>
-</div>
+  <header class="app-header">
+    <div class="header-row">
+      <div>
+        <div class="header-title">出張費精算</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.14.2</div>
+      </div>
+      <div class="header-actions">
+      <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
+      <button class="header-badge-btn" id="headerLoadBtn" type="button">データ呼出</button>
+      <button class="header-badge-btn" id="headerResetBtn" type="button">リセット</button>
+      </div>
+    </div>
+  </header>
 
-</div>
-<div class="hidden" id="judgeText"></div>
-<div class="small muted" style="margin-top:10px;">
+  <main class="container">
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>基本情報</h2>
+          <div class="section-sub">出張種類、日数、距離、日当条件をここで管理します。</div>
+        </div>
+        <div class="inline" id="distanceBtnWrap">
+                    <button class="btn btn-secondary" id="distanceBtn" type="button">銀座から距離計算</button>
+                    <button class="btn btn-secondary hidden" id="fxRateBtn" type="button">出発日の為替レート</button>
+        </div>
+      </div>
+
+      <div class="grid grid-4">
+        <div class="field">
+          <label for="tripType">出張種類</label>
+          <select id="tripType">
+            <option value="normal">普通出張</option>
+            <option value="longDay">長距離日帰り出張</option>
+            <option value="shortDay">近距離日帰り出張</option>
+            <option value="overseas">海外出張</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fullName">氏名</label>
+          <input id="fullName" type="text" placeholder="例）坂口 健太郎" />
+        </div>
+        <div class="field">
+          <label for="position">役職</label>
+          <select id="position">
+            <option value="">選択してください</option>
+            <option value="本部長">本部長</option>
+            <option value="副本部長">副本部長</option>
+            <option value="部長">部長</option>
+            <option value="副部長">副部長</option>
+            <option value="課長">課長</option>
+            <option value="副課長">副課長</option>
+            <option value="係長">係長</option>
+            <option value="主任">主任</option>
+            <option value="一般社員">一般社員</option>
+          </select>
+        </div>
+        <div class="field" id="destinationWrap">
+          <label for="destination" id="destinationLabel">出張先</label>
+          <input id="destination" type="text" placeholder="例）大阪市中央区" autocomplete="off" />
+          <div id="destinationSuggestions" class="suggestion-box hidden"></div>
+          <datalist id="countryOptions">
+            <option value="中華民国（台湾）"></option>
+            <option value="ベトナム"></option>
+            <option value="タイ"></option>
+            <option value="マレーシア"></option>
+            <option value="インドネシア"></option>
+            <option value="中華人民共和国（中国）"></option>
+            <option value="フィリピン"></option>
+            <option value="カンボジア"></option>
+            <option value="ラオス"></option>
+            <option value="インド"></option>
+            <option value="アメリカ"></option>
+            <option value="オーストラリア"></option>
+            <option value="ニュージーランド"></option>
+            <option value="パプアニューギニア"></option>
+          </datalist>
+        </div>
+      </div>
+
+      <div class="grid grid-4" style="margin-top:12px;">
+        <div class="field">
+          <label for="departDate">出発日</label>
+          <input id="departDate" type="text" inputmode="numeric" placeholder="例）yyyy/mm/dd" class="date-placeholder date-select" />
+        </div>
+        <div class="field" id="returnDateWrap">
+          <label for="returnDate">帰着日</label>
+          <input id="returnDate" type="text" inputmode="numeric" placeholder="例）yyyy/mm/dd" class="date-placeholder date-select" />
+        </div>
+        <div class="field">
+          <label>半日条件</label>
+          <div class="check-row">
+            <label><input id="pmDepart" type="checkbox" /> 午後発</label>
+            <label><input id="amArrive" type="checkbox" /> 午前着</label>
+          </div>
+        </div>
+        <div class="field" id="distanceWrap">
+          <label for="distanceKm">銀座からの距離 (km)</label>
+          <input id="distanceKm" class="center" type="number" placeholder="自動計算または手入力" min="0" step="0.1" />
+        </div>
+      </div>
+
+      <div class="grid grid-4 hidden" id="overseasExtraRow" style="margin-top:12px;">
+        <div class="field">
+          <label for="regionInput">地区</label>
+          <input id="regionInput" type="text" placeholder="例）B地区" />
+        </div>
+      </div>
+
+      <div class="fx-grid hidden" id="fxSection">
+        <div class="field">
+          <label for="usdJpyRate">為替 1 <span id="fxFetchStatus" class="fx-status hidden"></span></label>
+          <div class="fx-pair">
+            <input id="usdCode" type="text" class="fx-code readonly-code" value="USD" readonly />
+            <input id="usdJpyRate" type="text" inputmode="decimal" placeholder="出発日のUFJ仲値" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="localRate">為替 2</label>
+          <div class="fx-pair">
+            <input id="localCurrencyCode" type="text" class="fx-code readonly-code" value="" readonly placeholder="通貨" />
+            <input id="localRate" type="text" inputmode="decimal" placeholder="" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="manualCurrencyCode">為替 3</label>
+          <div class="fx-pair">
+            <input id="manualCurrencyCode" type="text" class="fx-code" placeholder="通貨" />
+            <input id="manualRate" type="text" inputmode="decimal" placeholder="" />
+          </div>
+          <div id="manualCurrencySuggestions" class="suggestion-box hidden"></div>
+          <datalist id="currencyCodeOptions">
+            <option value="USD"></option>
+            <option value="TWD"></option>
+            <option value="VND"></option>
+            <option value="THB"></option>
+            <option value="MYR"></option>
+            <option value="IDR"></option>
+            <option value="CNY"></option>
+            <option value="PHP"></option>
+            <option value="KHR"></option>
+            <option value="LAK"></option>
+            <option value="INR"></option>
+            <option value="AUD"></option>
+            <option value="NZD"></option>
+            <option value="PGK"></option>
+            <option value="EUR"></option>
+            <option value="GBP"></option>
+            <option value="HKD"></option>
+            <option value="CAD"></option>
+          </datalist>
+        </div>
+      </div>
+
+      <div class="summary-grid metrics-only" style="margin-top:14px;">
+        <div class="summary-box">
+          <div class="label">出張日数</div>
+          <div class="value metric-value" id="tripDaysText">0.0日</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">休日出勤</div>
+          <div class="value metric-value" id="holidayWorkText">0日</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">振替代休</div>
+          <div class="value metric-value" id="substituteText">0日</div>
+        </div>
+      </div>
+      <div id="judgeText" class="hidden"></div>
+      <div class="small muted" style="margin-top:10px;">
         ※ 祝日は公開JSONデータ取得を試み、取得できない場合は土日のみで計算します。距離計算は銀座四丁目付近を起点として道路距離で取得します。
       </div>
-</section>
-<section class="card">
-<div class="section-title">
-<div>
-<h2>交通費</h2>
-</div>
-<div class="inline">
-<button class="btn btn-secondary" data-sort="transport" type="button">日付順ソート</button>
-<button class="btn btn-primary" data-add="transport" type="button">行追加</button>
-</div>
-</div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>日付</th>
-<th>交通機関</th>
-<th>発地</th>
-<th>着地</th>
-<th class="right">金額</th>
-<th>備考</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="transportBody"></tbody>
-</table>
-</div>
-<div class="right" style="margin-top:10px;font-weight:700;">交通費合計：<span id="transportTotal">¥0</span></div>
-</section>
-<section class="card" id="lodgingSection">
-<div class="section-title">
-<div>
-<h2>宿泊経費</h2>
-</div>
-<div class="inline">
-<button class="btn btn-secondary" data-sort="lodging" type="button">日付順ソート</button>
-<button class="btn btn-primary" data-add="lodging" type="button">行追加</button>
-</div>
-</div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>日付</th>
-<th>宿泊先</th>
-<th class="right">金額</th>
-<th>備考</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="lodgingBody"></tbody>
-</table>
-</div>
-<div class="right" style="margin-top:10px;font-weight:700;">宿泊経費合計：<span id="lodgingTotal">¥0</span></div>
-</section>
-<section class="card">
-<div class="section-title">
-<div>
-<h2>その他</h2>
-</div>
-<div class="inline">
-<button class="btn btn-secondary" data-sort="other" type="button">日付順ソート</button>
-<button class="btn btn-primary" data-add="other" type="button">行追加</button>
-</div>
-</div>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>日付</th>
-<th>区分</th>
-<th>取引先</th>
-<th>参加者</th>
-<th>人数</th>
-<th class="right">金額</th>
-<th>備考</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="otherBody"></tbody>
-</table>
-</div>
-<div class="right" style="margin-top:10px;font-weight:700;">その他合計：<span id="otherTotal">¥0</span></div>
-</section>
-<section class="card">
-<div class="section-title">
-<div>
-<h2>日当計算</h2>
-<div class="section-sub">役職、出張区分、日数から自動計算します。</div>
-</div>
-</div>
-<div class="allowance-row">
-<div class="field">
-<label for="allowanceUnit">単価</label>
-<input class="right" id="allowanceUnit" placeholder="役職選択で自動反映" readonly="" type="text"/>
-</div>
-<div class="field">
-<label for="allowanceFactor">係数</label>
-<input id="allowanceFactor" placeholder="自動反映" readonly="" type="number"/>
-</div>
-<div class="field" id="allowanceDaysWrap">
-<label for="allowanceDays">出張日数</label>
-<input id="allowanceDays" placeholder="自動計算" readonly="" type="number"/>
-</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>交通費</h2>
+
+        </div>
+        <div class="inline">
+          <button class="btn btn-secondary" type="button" data-sort="transport">日付順ソート</button>
+          <button class="btn btn-primary" type="button" data-add="transport">行追加</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>交通機関</th>
+              <th>発地</th>
+              <th>着地</th>
+              <th class="right">金額</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="transportBody"></tbody>
+        </table>
+      </div>
+      <div class="right" style="margin-top:10px;font-weight:700;">交通費合計：<span id="transportTotal">¥0</span></div>
+    </section>
+
+    <section class="card" id="lodgingSection">
+      <div class="section-title">
+        <div>
+          <h2>宿泊経費</h2>
+
+        </div>
+        <div class="inline">
+          <button class="btn btn-secondary" type="button" data-sort="lodging">日付順ソート</button>
+          <button class="btn btn-primary" type="button" data-add="lodging">行追加</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>宿泊先</th>
+              <th class="right">金額</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lodgingBody"></tbody>
+        </table>
+      </div>
+      <div class="right" style="margin-top:10px;font-weight:700;">宿泊経費合計：<span id="lodgingTotal">¥0</span></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>その他</h2>
+        </div>
+        <div class="inline">
+          <button class="btn btn-secondary" type="button" data-sort="other">日付順ソート</button>
+          <button class="btn btn-primary" type="button" data-add="other">行追加</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>区分</th>
+              <th>取引先</th>
+              <th>参加者</th>
+              <th>人数</th>
+              <th class="right">金額</th>
+              <th>備考</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="otherBody"></tbody>
+        </table>
+      </div>
+      <div class="right" style="margin-top:10px;font-weight:700;">その他合計：<span id="otherTotal">¥0</span></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>日当計算</h2>
+          <div class="section-sub">役職、出張区分、日数から自動計算します。</div>
+        </div>
+      </div>
+      <div class="allowance-row">
+        <div class="field">
+          <label for="allowanceUnit">単価</label>
+          <input id="allowanceUnit" type="text" class="right" placeholder="役職選択で自動反映" readonly />
+        </div>
+        <div class="field">
+          <label for="allowanceFactor">係数</label>
+          <input id="allowanceFactor" type="number" placeholder="自動反映" readonly />
+        </div>
+        <div class="field" id="allowanceDaysWrap">
+          <label for="allowanceDays">出張日数</label>
+          <input id="allowanceDays" type="number" placeholder="自動計算" readonly />
+        </div>
+
+        <div class="field">
+          <label for="allowanceAmount">日当金額</label>
+          <input id="allowanceAmount" type="text" class="right" placeholder="自動計算" readonly />
+        </div>
+        <div class="field note-field">
+          <label for="allowanceNote">備考</label>
+          <input id="allowanceNote" type="text" placeholder="例）午後発のため0.5日控除" />
+        </div>
+      </div>
+    </section>
+
+    <section class="card grand-total">
+      <div class="section-title">
+        <div>
+          <h2>精算結果</h2>
+          <div class="section-sub">仮払い入力がある場合は差引後を表示します。</div>
+        </div>
+        <div class="inline">
+          
+        </div>
+      </div>
+      <div class="grid grid-4">
+        <div class="summary-box">
+          <div class="label">交通費</div>
+          <div class="value" id="sumTransport">¥0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">宿泊経費</div>
+          <div class="value" id="sumLodging">¥0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">その他</div>
+          <div class="value" id="sumOther">¥0</div>
+        </div>
+        <div class="summary-box">
+          <div class="label">日当</div>
+          <div class="value" id="sumAllowance">¥0</div>
+        </div>
+      </div>
+
+      <div class="grid grid-3" style="margin-top:14px;align-items:end;">
+        <div class="field">
+          <label for="advancePayment">仮払い金</label>
+          <input id="advancePayment" type="text" inputmode="numeric" placeholder="例）¥10,000" />
+        </div>
+        <div class="summary-box">
+          <div class="label">出張費合計金額</div>
+          <div class="value" id="grossTotal">¥0</div>
+        </div>
+        <div class="summary-box grand-total">
+          <div class="label">出張費精算金額合計</div>
+          <div class="value" id="netTotal">¥0</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">この版は入力フォーム・計算ロジック先行版です。次段階でExcelフォーム出力を追加できます。</div>
+  </main>
 
 
-<div class="field">
-<label for="allowanceAmount">日当金額</label>
-<input class="right" id="allowanceAmount" placeholder="自動計算" readonly="" type="text"/>
-</div>
-<div class="field note-field">
-<label for="allowanceNote">備考</label>
-<input id="allowanceNote" placeholder="例）午後発のため0.5日控除" type="text"/>
-</div>
-</div>
-</section>
-<section class="card grand-total">
-<div class="section-title">
-<div>
-<h2>精算結果</h2>
-<div class="section-sub">仮払い入力がある場合は差引後を表示します。</div>
-</div>
-<div class="inline">
-</div>
-</div>
-<div class="grid grid-4">
-<div class="summary-box">
-<div class="label">交通費</div>
-<div class="value" id="sumTransport">¥0</div>
-</div>
-<div class="summary-box">
-<div class="label">宿泊経費</div>
-<div class="value" id="sumLodging">¥0</div>
-</div>
-<div class="summary-box">
-<div class="label">その他</div>
-<div class="value" id="sumOther">¥0</div>
-</div>
-<div class="summary-box">
-<div class="label">日当</div>
-<div class="value" id="sumAllowance">¥0</div>
-</div>
-</div>
-<div class="grid grid-3" style="margin-top:14px;align-items:end;">
-<div class="field">
-<label for="advancePayment">仮払い金</label>
-<input id="advancePayment" inputmode="numeric" placeholder="例）¥10,000" type="text"/>
-</div>
-<div class="summary-box">
-<div class="label">出張費合計金額</div>
-<div class="value" id="grossTotal">¥0</div>
-</div>
-<div class="summary-box grand-total">
-<div class="label">出張費精算金額合計</div>
-<div class="value" id="netTotal">¥0</div>
-</div>
-</div>
-</section>
-<div class="footer-note">この版は入力フォーム・計算ロジック先行版です。次段階でExcelフォーム出力を追加できます。</div>
-</main>
-<div class="modal-backdrop" id="savedTripModal">
-<div class="modal-card">
-<button aria-label="閉じる" class="modal-close-x" id="savedTripCancelBtn" type="button">×</button>
-<div class="modal-title">保存内容を呼出</div>
-<div class="modal-sub">保存済みデータを選択してください。データ共有は保存されているデータ全件をJSON化し、外部データ取込は追加・同名上書きします。</div>
-<div class="field">
-<label for="savedTripSelect">保存済みデータ</label>
-<select id="savedTripSelect">
-<option value="">選択してください</option>
-</select>
-</div>
-<div class="modal-actions-row">
-<button class="btn btn-primary" id="savedTripApplyBtn" type="button">呼出</button>
-<button class="btn btn-secondary" id="savedTripShareBtn" type="button">共有</button>
-<button class="btn btn-secondary" id="savedTripImportBtn" type="button">外部から取込</button>
-</div>
-<input accept="application/json,.json" class="hidden" id="savedTripImportInput" type="file"/>
-</div>
-</div>
-<div class="toast-stack" id="toastStack"></div>
-<div class="save-toast-stack" id="saveToastStack"></div>
-<div class="update-popup" id="updatePopup">
-<div style="font-weight:800; margin-bottom:6px;">新しいバージョンがあります</div>
-<div class="small muted" style="margin-bottom:10px;">更新して最新の出張費精算アプリを開いてください。</div>
-<div class="inline">
-<button class="btn btn-primary" id="reloadBtn" type="button">更新する</button>
-<button class="btn btn-ghost" id="dismissUpdateBtn" type="button">あとで</button>
-</div>
-</div>
-<script>
-    const APP_VERSION = '2026.04.15.8';
+  <div class="modal-backdrop" id="savedTripModal">
+    <div class="modal-card">
+      <button class="modal-close-x" id="savedTripCancelBtn" type="button" aria-label="閉じる">×</button>
+      <div class="modal-title">保存内容を呼出</div>
+      <div class="modal-sub">保存済みデータを選択してください。データ共有は保存されているデータ全件をJSON化し、外部データ取込は追加・同名上書きします。</div>
+      <div class="field">
+        <label for="savedTripSelect">保存済みデータ</label>
+        <select id="savedTripSelect">
+          <option value="">選択してください</option>
+        </select>
+      </div>
+      <div class="modal-actions-row">
+        <button class="btn btn-primary" id="savedTripApplyBtn" type="button">呼出</button>
+        <button class="btn btn-secondary" id="savedTripShareBtn" type="button">共有</button>
+        <button class="btn btn-secondary" id="savedTripImportBtn" type="button">外部から取込</button>
+      </div>
+      <input id="savedTripImportInput" type="file" accept="application/json,.json" class="hidden" />
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack"></div>
+  <div class="save-toast-stack" id="saveToastStack"></div>
+
+  <div class="update-popup" id="updatePopup">
+    <div style="font-weight:800; margin-bottom:6px;">新しいバージョンがあります</div>
+    <div class="small muted" style="margin-bottom:10px;">更新して最新の出張費精算アプリを開いてください。</div>
+    <div class="inline">
+      <button class="btn btn-primary" id="reloadBtn" type="button">更新する</button>
+      <button class="btn btn-ghost" id="dismissUpdateBtn" type="button">あとで</button>
+    </div>
+  </div>
+
+  <script>
+    const APP_VERSION = '2026.04.15.8a';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
@@ -1378,8 +1402,6 @@ td select {
       allowanceFactor: document.getElementById('allowanceFactor'),
       allowanceDays: document.getElementById('allowanceDays'),
       allowanceAmount: document.getElementById('allowanceAmount'),
-      holidayWorkDays: document.getElementById('holidayWorkDays'),
-      substituteDays: document.getElementById('substituteDays'),
       allowanceNote: document.getElementById('allowanceNote'),
       advancePayment: document.getElementById('advancePayment'),
       sumTransport: document.getElementById('sumTransport'),
@@ -2048,8 +2070,8 @@ td select {
       if (els.substituteDays) els.substituteDays.value = holidayDays;
 
       els.tripDaysText.textContent = `${tripDays.toFixed(1)}日`;
-      if (els.holidayWorkText) els.holidayWorkText.textContent = `${holidayDays}日`;
-      if (els.substituteText) els.substituteText.textContent = `${holidayDays}日`;
+      els.holidayWorkText.textContent = `${holidayDays}日`;
+      els.substituteText.textContent = `${holidayDays}日`;
 
       const transport = sumRows(state.transport, 'amount');
       const lodging = sumRows(state.lodging, 'amount');
