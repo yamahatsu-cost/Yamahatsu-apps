@@ -815,6 +815,60 @@ td select {
 }
 
 
+
+
+/* ===== スマホ用：その他テーブルの通常表示レイアウト修正 ===== */
+@media (max-width: 900px) {
+  #otherTable {
+    table-layout: fixed;
+    min-width: 1020px;
+  }
+
+  #otherTable th:nth-child(1),
+  #otherTable td:nth-child(1) { width: 92px; }
+
+  #otherTable th:nth-child(2),
+  #otherTable td:nth-child(2) { width: 96px; }
+
+  #otherTable th:nth-child(3),
+  #otherTable td:nth-child(3) { width: 180px; }
+
+  #otherTable th:nth-child(4),
+  #otherTable td:nth-child(4) { width: 240px; }
+
+  #otherTable th:nth-child(5),
+  #otherTable td:nth-child(5) { width: 88px; }
+
+  #otherTable th:nth-child(6),
+  #otherTable td:nth-child(6) { width: 132px; }
+
+  #otherTable th:nth-child(7),
+  #otherTable td:nth-child(7) { width: 170px; }
+
+  #otherTable th:nth-child(8),
+  #otherTable td:nth-child(8) { width: 46px; }
+
+  #otherTable td {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  #otherTable td input,
+  #otherTable td select,
+  #otherTable td textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #otherTable td:nth-child(5) input {
+    text-align: center !important;
+  }
+
+  #otherTable td:nth-child(8) {
+    text-align: center;
+  }
+}
+
 /* ===== スマホ専用：その他テーブル最適化 ===== */
 @media (max-width: 900px) {
   #otherBody td:nth-child(4) input {
@@ -1043,7 +1097,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.15.17</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.15.18</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -1389,7 +1443,7 @@ td select {
   </div>
 
   <script>
-    const APP_VERSION = '2026.04.15.16';
+    const APP_VERSION = '2026.04.15.18';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
