@@ -280,9 +280,53 @@
     .check-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       min-height: 42px;
-      padding: 0 6px;
+      padding: 0;
+      flex-wrap: wrap;
+    }
+
+    .halfday-toggle {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .halfday-toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .halfday-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 96px;
+      min-height: 42px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid #cfd8e6;
+      background: #eef3fa;
+      color: #415065;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s ease;
+      user-select: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .halfday-btn:hover {
+      transform: translateY(-1px);
+      background: #e4edf8;
+    }
+
+    .halfday-btn.active {
+      background: linear-gradient(180deg, var(--blue), var(--blue-dark));
+      color: #fff;
+      border-color: var(--blue-dark);
+      box-shadow: 0 8px 18px rgba(11, 87, 208, 0.22);
     }
 
     .btn {
@@ -1132,7 +1176,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.17.5</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.17.1</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -1219,9 +1263,15 @@ td select {
         </div>
         <div class="field">
           <label>半日条件</label>
-          <div class="check-row">
-            <label><input id="pmDepart" type="checkbox" /> 午後発</label>
-            <label><input id="amArrive" type="checkbox" /> 午前着</label>
+          <div class="check-row" id="halfdayToggleRow">
+            <label class="halfday-toggle">
+              <input id="pmDepart" type="checkbox" />
+              <span class="halfday-btn" id="pmDepartBtn">午後発</span>
+            </label>
+            <label class="halfday-toggle">
+              <input id="amArrive" type="checkbox" />
+              <span class="halfday-btn" id="amArriveBtn">午前着</span>
+            </label>
           </div>
         </div>
         <div class="field" id="distanceWrap">
@@ -1577,6 +1627,8 @@ td select {
       returnDateWrap: document.getElementById('returnDateWrap'),
       pmDepart: document.getElementById('pmDepart'),
       amArrive: document.getElementById('amArrive'),
+      pmDepartBtn: document.getElementById('pmDepartBtn'),
+      amArriveBtn: document.getElementById('amArriveBtn'),
       distanceKm: document.getElementById('distanceKm'),
       distanceWrap: document.getElementById('distanceWrap'),
       distanceBtnWrap: document.getElementById('distanceBtnWrap'),
@@ -1930,6 +1982,16 @@ td select {
       const dd = String(d.getDate()).padStart(2, '0');
       return `${yyyy}-${mm}-${dd}`;
     }
+
+    function syncHalfdayButtons() {
+      if (els.pmDepartBtn) {
+        els.pmDepartBtn.classList.toggle('active', !!els.pmDepart.checked);
+      }
+      if (els.amArriveBtn) {
+        els.amArriveBtn.classList.toggle('active', !!els.amArrive.checked);
+      }
+    }
+
 
     function dateRange(start, end) {
       if (!start || !end || start > end) return [];
@@ -2834,6 +2896,7 @@ function tdSelect(kind, index, key, value, options) {
       els.returnDate.value = f.returnDate || '';
       els.pmDepart.checked = !!f.pmDepart;
       els.amArrive.checked = !!f.amArrive;
+      syncHalfdayButtons();
       els.distanceKm.value = f.distanceKm || '';
       els.allowanceNote.value = f.allowanceNote || '';
       els.advancePayment.value = f.advancePayment || '';
@@ -3541,18 +3604,22 @@ function tdSelect(kind, index, key, value, options) {
         if ((els.tripType.value === 'shortDay' || els.tripType.value === 'longDay') && els.pmDepart.checked) {
           els.amArrive.checked = false;
         }
+        syncHalfdayButtons();
         calculateAll();
       });
       els.amArrive.addEventListener('change', () => {
         if ((els.tripType.value === 'shortDay' || els.tripType.value === 'longDay') && els.amArrive.checked) {
           els.pmDepart.checked = false;
         }
+        syncHalfdayButtons();
         calculateAll();
       });
       els.distanceBtn.addEventListener('click', calculateDistance);
       if (els.fxRateBtn) {
         els.fxRateBtn.addEventListener('click', openDepartDateFxPage);
       }
+
+      syncHalfdayButtons();
 
       attachSuggestionBehavior(els.destination, els.destinationSuggestions, COUNTRY_OPTIONS, value => {
         if (els.tripType.value !== 'overseas') {
