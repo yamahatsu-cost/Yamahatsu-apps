@@ -742,6 +742,47 @@
       .grid-4, .grid-3, .grid-2, .summary-grid {
         grid-template-columns: 1fr;
       }
+
+      .basic-info-grid {
+        gap: 10px;
+      }
+
+      .basic-info-grid .field {
+        display: grid;
+        grid-template-columns: 108px minmax(0, 1fr);
+        align-items: center;
+        column-gap: 10px;
+      }
+
+      .basic-info-grid .field label {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .basic-info-grid .field > input,
+      .basic-info-grid .field > select,
+      .basic-info-grid .field > textarea,
+      .basic-info-grid .field > .check-row,
+      .basic-info-grid .field > .fx-pair {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .basic-info-grid .field > .check-row {
+        justify-content: flex-start;
+      }
+
+      .basic-info-grid .field > .suggestion-box {
+        left: 118px;
+        right: 0;
+        width: auto;
+      }
+
+      .basic-info-grid .field > .suggestion-box.hidden {
+        display: none !important;
+      }
+
       .allowance-row {
         grid-template-columns: 110px 80px 80px 140px minmax(420px, 1fr);
       }
@@ -1169,6 +1210,62 @@ td select {
       background: #ffd9d9 !important;
     }
 
+
+
+/* ===== 基本情報 入力欄 中央揃え ===== */
+.container .card:first-of-type input[type="text"],
+.container .card:first-of-type input[type="number"],
+.container .card:first-of-type select {
+  text-align: center !important;
+}
+
+/* プレースホルダも中央 */
+.container .card:first-of-type input::placeholder {
+  text-align: center;
+}
+
+
+/* 半日条件は従来レイアウトに戻す */
+#halfdayToggleRow {
+  justify-content: flex-start !important;
+}
+
+#halfdayToggleRow .halfday-btn {
+  text-align: center !important;
+  min-width: 96px;
+}
+
+/* 親の中央揃えを無効化 */
+.container .card:first-of-type #halfdayToggleRow {
+  text-align: left !important;
+}
+
+
+/* 半日条件ボタンをスマホでも横並び固定 */
+#halfdayToggleRow {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+}
+
+#halfdayToggleRow .halfday-toggle {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+}
+
+#halfdayToggleRow .halfday-btn {
+  min-width: 96px !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 900px) {
+  #halfdayToggleRow {
+    flex-wrap: nowrap !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1199,7 +1296,7 @@ td select {
         </div>
       </div>
 
-      <div class="grid grid-4">
+      <div class="grid grid-4 basic-info-grid">
         <div class="field">
           <label for="tripType">出張種類</label>
           <select id="tripType">
@@ -1252,7 +1349,7 @@ td select {
         </div>
       </div>
 
-      <div class="grid grid-4" style="margin-top:12px;">
+      <div class="grid grid-4 basic-info-grid basic-info-grid-second" style="margin-top:12px;">
         <div class="field">
           <label for="departDate">出発日</label>
           <input id="departDate" type="text" inputmode="numeric" placeholder="例）yyyy/mm/dd" class="date-placeholder date-select" />
@@ -1280,7 +1377,7 @@ td select {
         </div>
       </div>
 
-      <div class="grid grid-4 hidden" id="overseasExtraRow" style="margin-top:12px;">
+      <div class="grid grid-4 hidden basic-info-grid" id="overseasExtraRow" style="margin-top:12px;">
         <div class="field">
           <label for="regionInput">地区</label>
           <input id="regionInput" type="text" placeholder="例）B地区" />
