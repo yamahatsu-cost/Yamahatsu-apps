@@ -1266,6 +1266,32 @@ td select {
   }
 }
 
+
+/* iPhone Safari用：基本情報のドロップダウン中央揃え */
+.container .card:first-of-type select {
+  text-align: center !important;
+  text-align-last: center !important;
+  -webkit-text-align-last: center !important;
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 10px) calc(50% - 3px);
+}
+
+.container .card:first-of-type select option {
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .container .card:first-of-type .field > select,
+  .container .card:first-of-type .basic-info-grid .field > select {
+    text-align: center !important;
+    text-align-last: center !important;
+    -webkit-text-align-last: center !important;
+    padding-left: 12px !important;
+    padding-right: 34px !important;
+  }
+}
+
 </style>
 </head>
 <body>
