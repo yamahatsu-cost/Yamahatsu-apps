@@ -1299,7 +1299,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.17.1-r1</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.23.2</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -3296,12 +3296,14 @@ function tdSelect(kind, index, key, value, options) {
         names.map(name => `<option value="${name}">${name}</option>`).join('');
     }
 
-    function saveNamedTrip() {
-      calculateAll();
-      if (!validateRequiredFields()) return;
+    function saveNamedTrip(options = {}) {
+      const { silent = false, skipRecalc = false } = options;
+
+      if (!skipRecalc) calculateAll();
+      if (!validateRequiredFields()) return '';
 
       const tripSaveName = buildTripSaveName();
-      if (!tripSaveName) return;
+      if (!tripSaveName) return '';
 
       persistDraft(false);
 
@@ -3321,7 +3323,10 @@ function tdSelect(kind, index, key, value, options) {
         renderHotelDatalist();
       }
 
-      showSaveToast(`「${tripSaveName}」で保存しました`, { duration: 2200 });
+      if (!silent) {
+        showSaveToast(`「${tripSaveName}」で保存しました`, { duration: 2200 });
+      }
+      return tripSaveName;
     }
 
     function openSavedTripModal() {
@@ -4277,6 +4282,9 @@ function clearNormalTripTemplate(sheet) {
     }
 
     async function exportTripExcel() {
+      const savedName = saveNamedTrip({ silent: true, skipRecalc: true });
+      if (!savedName) return;
+
       if (els.tripType.value === 'normal') {
         return exportNormalTripExcel();
       }
