@@ -1299,7 +1299,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.17.1</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.17.1-r1</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -1340,6 +1340,7 @@ td select {
           <label for="position">役職</label>
           <select id="position">
             <option value="">選択してください</option>
+            <option value="役員">役員</option>
             <option value="本部長">本部長</option>
             <option value="副本部長">副本部長</option>
             <option value="部長">部長</option>
@@ -1652,13 +1653,14 @@ td select {
 
   <script src="https://unpkg.com/xlsx-populate/browser/xlsx-populate.min.js"></script>
   <script>
-    const APP_VERSION = '2026.04.17.1';
+    const APP_VERSION = '2026.04.23.1';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
     const HOTEL_KEY = 'trip-expense-hotel-history-v1';
     const GINZA_COORDS = { lat: 35.6717, lon: 139.7650 };
     const ROLE_RATES = {
+      '役員': 4500,
       '本部長': 4000,
       '副本部長': 4000,
       '部長': 4000,
@@ -2507,13 +2509,36 @@ function syncTripTypeUI() {
     }
 
     function getAllowanceRate() {
-      if (!isOverseasTrip()) return ROLE_RATES[els.position.value] || 0;
-      const execPositions = ['本部長', '副本部長', '部長'];
-      const isExec = execPositions.includes(els.position.value);
+      const position = els.position.value || '';
       const region = (els.regionInput.value || '').trim().toUpperCase();
-      if (region === 'A地区') return isExec ? 65 : 60;
-      if (region === 'B地区') return isExec ? 60 : 55;
-      if (region === 'C地区') return isExec ? 55 : 50;
+
+      if (position === '顧問') return 0;
+
+      if (!isOverseasTrip()) {
+        return ROLE_RATES[position] || 0;
+      }
+
+      const isOfficer = position === '役員';
+      const isUpperRole = ['本部長', '副本部長', '部長', '副部長'].includes(position);
+
+      if (region === 'A地区') {
+        if (isOfficer) return 70;
+        if (isUpperRole) return 65;
+        return 60;
+      }
+
+      if (region === 'B地区') {
+        if (isOfficer) return 65;
+        if (isUpperRole) return 60;
+        return 55;
+      }
+
+      if (region === 'C地区') {
+        if (isOfficer) return 60;
+        if (isUpperRole) return 55;
+        return 50;
+      }
+
       return 0;
     }
     function getAllowanceFactor() {
