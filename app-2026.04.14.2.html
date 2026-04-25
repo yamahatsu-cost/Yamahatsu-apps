@@ -1299,7 +1299,7 @@ td select {
     <div class="header-row">
       <div>
         <div class="header-title">出張費精算</div>
-        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.23.2</div>
+        <div class="header-sub">山發日本株式会社　社内アプリ Ver_4.23.5</div>
       </div>
       <div class="header-actions">
       <button class="header-badge-btn" id="headerSaveBtn" type="button">入力内容を保存</button>
@@ -1653,7 +1653,7 @@ td select {
 
   <script src="https://unpkg.com/xlsx-populate/browser/xlsx-populate.min.js"></script>
   <script>
-    const APP_VERSION = '2026.04.23.1';
+    const APP_VERSION = '2026.04.25.2';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
@@ -2085,16 +2085,47 @@ td select {
     function refreshDatePlaceholderFields() {
       setupDatePlaceholderField(els.departDate);
       setupDatePlaceholderField(els.returnDate);
+      syncReturnDateMin();
+    }
+
+    function addDaysToDateString(dateStr, days) {
+      const d = toDate(dateStr);
+      if (!d) return '';
+      d.setDate(d.getDate() + Number(days || 0));
+      return formatDateKey(d);
+    }
+
+    function isReturnDateRequiredTrip() {
+      return els.tripType.value === 'normal' || els.tripType.value === 'overseas';
+    }
+
+    function syncReturnDateMin() {
+      if (!els.returnDate || !els.departDate) return;
+      if (!isReturnDateRequiredTrip()) {
+        els.returnDate.removeAttribute('min');
+        return;
+      }
+      const minReturnDate = addDaysToDateString(els.departDate.value, 1);
+      if (minReturnDate) {
+        // 出発日を含め、それ以前は帰着日に選択不可
+        els.returnDate.min = minReturnDate;
+      } else {
+        els.returnDate.removeAttribute('min');
+      }
     }
 
     function validateReturnDateOrder(showAlert = true) {
+      syncReturnDateMin();
+      if (!isReturnDateRequiredTrip()) {
+        return true;
+      }
       const depart = toDate(els.departDate.value);
       const ret = toDate(els.returnDate.value);
-      if (depart && ret && ret < depart) {
-        els.returnDate.value = '';
+      if (depart && ret && ret <= depart) {
+        els.returnDate.value = '';//FIX
         refreshDatePlaceholderFields();
         if (showAlert) {
-          showToast('帰着日は出発日以降の日付を選択してください。', 'warn');
+          showToast('帰着日は出発日の翌日以降を選択してください。', 'warn');
         }
         return false;
       }
@@ -3616,14 +3647,11 @@ function tdSelect(kind, index, key, value, options) {
       if (!validateRequiredFields()) {
         return false;
       }
-      if (els.tripType.value === 'normal') {
-        const depart = String(els.departDate.value || '').trim();
-        const ret = String(els.returnDate.value || '').trim();
-        if (depart && ret && depart === ret) {
+      if (isReturnDateRequiredTrip()) {
+        if (!validateReturnDateOrder(true)) {
           markFieldError(els.departDate);
           markFieldError(els.returnDate);
           scrollToErrorField(els.departDate);
-          showToast('普通出張では、出発日と帰着日が同じ日付です。内容を確認してください。', 'warn');
           return false;
         }
       }
@@ -3682,8 +3710,14 @@ function tdSelect(kind, index, key, value, options) {
                 await fetchUsdJpyTtm(els.departDate.value);
               }
             }
+            if (key === 'departDate') {
+              syncReturnDateMin();
+            }
             if (key === 'departDate' && els.tripType.value !== 'normal' && els.tripType.value !== 'overseas') {
               els.returnDate.value = els.departDate.value || '';
+            }
+            if ((key === 'departDate' || key === 'returnDate') && els.returnDate.value) {
+              validateReturnDateOrder(false);
             }
             updateDateSelectors();
             await prepareHolidayData();
@@ -3707,6 +3741,9 @@ function tdSelect(kind, index, key, value, options) {
             els.regionInput.dataset.autoFilled = '0';
           }
           if (key === 'departDate' || key === 'returnDate') {
+            if (key === 'departDate') {
+              syncReturnDateMin();
+            }
             if (key === 'returnDate' && !validateReturnDateOrder(true)) {
               els.returnDate.value = '';
             }
