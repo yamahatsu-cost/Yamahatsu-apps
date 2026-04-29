@@ -956,6 +956,56 @@ td select {
 }
 
 
+/* 宿泊先：日付欄・通常ドロップダウンと同じ見た目の手入力可能リスト */
+input.hotel-list-input,
+td input.hotel-list-input,
+table input.hotel-list-input {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  border: 1px solid #cfd8e6 !important;
+  border-radius: 12px !important;
+  padding: 8px 30px 8px 10px !important;
+  color: var(--text) !important;
+  font: inherit !important;
+  line-height: 1.2 !important;
+  box-sizing: border-box !important;
+  background-color: var(--beige) !important;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #2f86eb 50%),
+    linear-gradient(135deg, #2f86eb 50%, transparent 50%) !important;
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 10px) calc(50% - 3px) !important;
+  background-size: 8px 8px, 8px 8px !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Chrome/Androidのdatalist標準アイコンを隠して、アプリ共通の青い▼だけ表示 */
+input.hotel-list-input::-webkit-calendar-picker-indicator {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+input.hotel-list-input::placeholder {
+  color: var(--muted) !important;
+  opacity: 1 !important;
+}
+
+input.hotel-list-input.has-value {
+  background-color: #fff !important;
+}
+
+input.hotel-list-input:focus {
+  outline: none !important;
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.12) !important;
+}
+
+
 
 
 /* ===== スマホ用：その他テーブルの通常表示レイアウト修正 ===== */
@@ -1656,7 +1706,7 @@ td select {
 
   <script src="https://unpkg.com/xlsx-populate/browser/xlsx-populate.min.js"></script>
   <script>
-    const APP_VERSION = 'app-2026.04.24.2';
+    const APP_VERSION = '2026.04.25.7';
     const STORAGE_KEY = 'trip-expense-app-state-v1';
     const SAVED_TRIPS_KEY = 'trip-expense-saved-trips-v2';
     const DISMISSED_KEY = 'dismissed_version';
@@ -2732,7 +2782,7 @@ function renderRows(kind) {
         if (kind === 'lodging') {
           tr.append(
             tdDate(kind, index, row.date),
-            tdInput(kind, index, 'hotel', row.hotel, 'text', '例）アパホテル心斎橋', '', getHotelHistory()),
+            tdInput(kind, index, 'hotel', row.hotel, 'text', '例）アパホテル心斎橋'),
             tdInput(kind, index, 'amount', row.amount, 'text', overseas ? '例）2,550.00' : '例）\\14,000', 'right lodging-amount-col')
           );
           if (overseas) {
@@ -2929,6 +2979,13 @@ function tdSelect(kind, index, key, value, options) {
       if (datalistId) {
         input.setAttribute('list', datalistId);
       }
+      if (kind === 'lodging' && key === 'hotel') {
+        input.classList.add('hotel-list-input');
+        input.setAttribute('autocomplete', 'off');
+        // 宿泊先は手入力可能な履歴リストを残す。
+        // 独自の吹き出しサジェストは使わず、ブラウザ標準のdatalistだけを使用。
+        input.setAttribute('list', getHotelHistory());
+      }
       input.required = key !== 'note';
       input.addEventListener('input', e => {
         clearFieldError(e.target);
@@ -3055,13 +3112,7 @@ function tdSelect(kind, index, key, value, options) {
     function persistDraft(showAlert = true) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState()));
       if (showAlert) {
-        const hotels = [...new Set(state.lodging.map(r => (r.hotel || '').trim()).filter(Boolean))];
-        if (hotels.length) {
-          const current = JSON.parse(localStorage.getItem(HOTEL_KEY) || '[]');
-          const merged = [...hotels, ...current.filter(v => !hotels.includes(v))].slice(0, 50);
-          localStorage.setItem(HOTEL_KEY, JSON.stringify(merged));
-          renderHotelDatalist();
-        }
+        saveHotelHistoryFromLodging();
         showSaveToast('入力内容を保存しました');
       }
     }
@@ -3334,6 +3385,7 @@ function tdSelect(kind, index, key, value, options) {
       const { silent = false, skipRecalc = false } = options;
 
       if (!skipRecalc) calculateAll();
+      saveHotelHistoryFromLodging();
       if (!validateRequiredFields()) return '';
 
       const tripSaveName = buildTripSaveName();
@@ -3349,13 +3401,7 @@ function tdSelect(kind, index, key, value, options) {
       setSavedTrips(savedTrips);
       renderSavedTripOptions();
 
-      const hotels = [...new Set(state.lodging.map(r => (r.hotel || '').trim()).filter(Boolean))];
-      if (hotels.length) {
-        const current = JSON.parse(localStorage.getItem(HOTEL_KEY) || '[]');
-        const merged = [...hotels, ...current.filter(v => !hotels.includes(v))].slice(0, 50);
-        localStorage.setItem(HOTEL_KEY, JSON.stringify(merged));
-        renderHotelDatalist();
-      }
+      saveHotelHistoryFromLodging();
 
       if (!silent) {
         showSaveToast(`「${tripSaveName}」で保存しました`, { duration: 2200 });
@@ -3458,19 +3504,69 @@ function tdSelect(kind, index, key, value, options) {
       return 'hotelCandidates';
     }
 
+    function getStoredHotelHistory() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(HOTEL_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed.map(v => String(v || '').trim()).filter(Boolean) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveHotelHistoryFromLodging() {
+      const currentRows = Array.isArray(state.lodging) ? state.lodging : [];
+      const entered = currentRows
+        .map(r => String(r?.hotel || '').trim())
+        .filter(Boolean);
+      if (!entered.length) return false;
+
+      const stored = getStoredHotelHistory();
+      const mergedMap = new Map();
+
+      // 今回入力した宿泊先を先頭に置く。同じ宿泊先がある場合は上書き扱いで1件だけ残す。
+      [...entered, ...stored].forEach(name => {
+        const key = name.replace(/\s+/g, ' ').toLowerCase();
+        if (key && !mergedMap.has(key)) mergedMap.set(key, name);
+      });
+
+      const merged = [...mergedMap.values()].slice(0, 80);
+      localStorage.setItem(HOTEL_KEY, JSON.stringify(merged));
+      renderHotelDatalist();
+      return true;
+    }
+
     function storeHotelHistory(name) {
-      return;
+      const value = String(name || '').trim();
+      if (!value) return false;
+      const current = getStoredHotelHistory();
+      const rowsBackup = state.lodging;
+      state.lodging = [{ hotel: value }, ...current.map(hotel => ({ hotel }))];
+      const saved = saveHotelHistoryFromLodging();
+      state.lodging = rowsBackup;
+      return saved;
+    }
+
+    function escapeHtmlAttr(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
 
     function renderHotelDatalist() {
-      let dl = document.getElementById('hotelCandidates');
+      // 宿泊先の候補吹き出し表示は廃止。
+      // 過去データ保存と、手入力可能なリストボックス機能は残す。
+      let dl = document.getElementById(getHotelHistory());
       if (!dl) {
         dl = document.createElement('datalist');
-        dl.id = 'hotelCandidates';
+        dl.id = getHotelHistory();
         document.body.appendChild(dl);
       }
-      const items = JSON.parse(localStorage.getItem(HOTEL_KEY) || '[]');
-      dl.innerHTML = items.map(v => `<option value="${v}"></option>`).join('');
+      const options = getStoredHotelHistory()
+        .map(name => `<option value="${escapeHtmlAttr(name)}"></option>`)
+        .join('');
+      dl.innerHTML = options;
     }
 
     function adjustTripTypeByDistance(showPopup = false) {
@@ -4343,6 +4439,7 @@ function clearNormalTripTemplate(sheet) {
     }
 
     async function exportTripExcel() {
+      saveHotelHistoryFromLodging();
       const savedName = saveNamedTrip({ silent: true, skipRecalc: true });
       if (!savedName) return;
 
